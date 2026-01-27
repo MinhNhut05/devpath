@@ -142,6 +142,4 @@ vite.config.ts.timestamp-*
 # Personal/Local files (không push lên GitHub)
 # ===========================================
 CLAUDE.md
-learnstart.md
-TRACKPAD.md
 CONTEXT.md
