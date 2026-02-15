@@ -21,11 +21,63 @@
 
 ## 🎯 Current Phase
 
-**Phase 1: Foundation** (theo CONTEXT.md)
+**Phase 1: Foundation** (theo `context/00-overview.md`)
+- Planning & docs: ✅ Done
+- Next: Backend Auth module
 
 ---
 
 ## 🛠️ Development Progress
+
+### 2026-02-15
+**Session: Planning & Refactor Docs**
+
+#### Đã làm:
+- ✅ **Thảo luận & quyết định toàn bộ scope dự án** qua 7 phần:
+  1. Scope & MVP - giữ nguyên tất cả features, 50-200 users, sản phẩm thực
+  2. Infrastructure - DigitalOcean VPS, Docker, Cloudflare, Nginx Proxy Manager
+  3. Authentication - OTP (Mailgun) + Google OAuth + GitHub OAuth
+  4. Payment - 3 tiers (Free/Pro/Ultra), MoMo + VNPay, monthly subscription
+  5. Frontend - Shadcn/ui + Tailwind + UI UX Pro Max Skill, dark mode, mobile-first
+  6. Content - 3 paths (~200+ bài), 3 loại quiz, AI generate + review
+  7. AI - Anthropic-compatible API từ manager.devteamos.me, token quota theo tier
+
+- ✅ **Tách CONTEXT.md thành folder `context/`** với 12 files:
+  - 00-overview.md → Tổng quan + tất cả quyết định
+  - 01-tech-stack.md → Tech stack & versions
+  - 02-infrastructure.md → VPS, Docker, domain, DNS
+  - 03-authentication.md → OTP, OAuth, JWT
+  - 04-database.md → Prisma schema (cập nhật)
+  - 05-api-design.md → API endpoints
+  - 06-ai-integration.md → AI chatbot, context injection
+  - 07-payment.md → Payment flow, tiers
+  - 08-frontend.md → React, Shadcn/ui, UX
+  - 09-content.md → Learning paths, quiz types
+  - 10-deployment.md → CI/CD, Docker production
+  - 11-security.md → Security checklist
+
+- ✅ **Cập nhật CLAUDE.md** → reference context/ thay vì CONTEXT.md
+- ✅ **Xóa CONTEXT.md cũ** ở root
+
+#### Key decisions:
+| Area | Quyết định |
+|------|-----------|
+| Email service | Mailgun (free 100/ngày) |
+| Auth | OTP + Google + GitHub OAuth |
+| Tiers | Free / Pro / Ultra (monthly, token-based) |
+| Payment | MoMo + VNPay |
+| UI | Shadcn/ui + UI UX Pro Max Skill |
+| Dark mode | Có, từ đầu |
+| Responsive | Mobile-first |
+| Quiz types | Trắc nghiệm + Tự luận (AI chấm) + Code challenge |
+| Content | AI generate + review, tiếng Việt trước |
+| Deploy | Docker on DigitalOcean VPS |
+| Domain | devpathos.tech (FE) + api.devpathos.tech (BE) |
+
+#### Bước tiếp theo:
+- [ ] Bắt đầu code backend (Auth module: OTP + OAuth + JWT)
+
+---
 
 ### 2026-01-28
 **Session: Học Claude Skills & Tạo Custom Skills**
