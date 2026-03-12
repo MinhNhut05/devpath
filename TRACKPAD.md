@@ -1,276 +1,76 @@
-# TRACKPAD - DevPath Learning Progress
+# TRACKPAD - DevPath Learning Journal
 
-> File này dùng để tracking tiến độ học tập và phát triển dự án DevPath.
-
----
-
-## 📅 Timeline
-
-### 2026-01-26
-- ✅ Claim domain **devpathos.tech** miễn phí 1 năm (.TECH Domains)
-- ✅ Claim **Microsoft Azure for Students** $100 credits (hết hạn: Apr 18, 2026)
-
-### 2026-01-25
-- ✅ Đăng ký GitHub Student Developer Pack thành công
-- ✅ Claim $200 DigitalOcean credits (hết hạn: Jan 2027)
-- ✅ Claim Datadog Pro monitoring (hết hạn: Jan 2028, hoặc khi hết sinh viên)
-- ✅ Claim domain **devteamos.me** miễn phí 1 năm (Namecheap)
-- ✅ Claim SSL Certificate PositiveSSL 1 năm (Namecheap)
+> Session-based learning journal. Structured info moved to `.context/` folder.
+>
+> - Decisions → `.context/DECISIONS.md`
+> - Resources & domains → `.context/PROJECT.md`
+> - Roadmap & phases → `.context/ROADMAP.md`
+> - Lessons learned → `.context/research/PITFALLS.md`
 
 ---
 
-## 🎯 Current Phase
+## Sessions
 
-**Phase 1: Foundation** (theo `context/00-overview.md`)
-- Planning & docs: ✅ Done
-- Next: Backend Auth module
+### 2026-03-02
+**Context Restructuring**
+
+- Restructured all project context into `.context/` folder
+- Created 20+ files: STATE, PROJECT, REQUIREMENTS, ARCHITECTURE, COMMANDS, WORKFLOW, ROADMAP, DECISIONS, LEARNING, ONBOARDING
+- Moved `context/` → `.context/specs/`, `branches/` → `.context/branches/`
+- Added new folders: research/, codebase/, todos/, debug/
+- Rewrote CLAUDE.md from ~178 lines → ~65 lines
+- Created branch `_TEMPLATE/` with CONTEXT.md, TODO.md, PROGRESS.md
+
+**Learned**: AI-friendly project context structure with unique requirement IDs for traceability.
 
 ---
-
-## 🛠️ Development Progress
 
 ### 2026-02-15
-**Session: Planning & Refactor Docs**
+**Planning & Refactor Docs**
 
-#### Đã làm:
-- ✅ **Thảo luận & quyết định toàn bộ scope dự án** qua 7 phần:
-  1. Scope & MVP - giữ nguyên tất cả features, 50-200 users, sản phẩm thực
-  2. Infrastructure - DigitalOcean VPS, Docker, Cloudflare, Nginx Proxy Manager
-  3. Authentication - OTP (Mailgun) + Google OAuth + GitHub OAuth
-  4. Payment - 3 tiers (Free/Pro/Ultra), MoMo + VNPay, monthly subscription
-  5. Frontend - Shadcn/ui + Tailwind + UI UX Pro Max Skill, dark mode, mobile-first
-  6. Content - 3 paths (~200+ bài), 3 loại quiz, AI generate + review
-  7. AI - Anthropic-compatible API từ manager.devteamos.me, token quota theo tier
+- Discussed & decided full project scope (7 areas: scope, infra, auth, payment, frontend, content, AI)
+- Split CONTEXT.md into `context/` folder with 12 topic files
+- Updated CLAUDE.md to reference context/ files
 
-- ✅ **Tách CONTEXT.md thành folder `context/`** với 12 files:
-  - 00-overview.md → Tổng quan + tất cả quyết định
-  - 01-tech-stack.md → Tech stack & versions
-  - 02-infrastructure.md → VPS, Docker, domain, DNS
-  - 03-authentication.md → OTP, OAuth, JWT
-  - 04-database.md → Prisma schema (cập nhật)
-  - 05-api-design.md → API endpoints
-  - 06-ai-integration.md → AI chatbot, context injection
-  - 07-payment.md → Payment flow, tiers
-  - 08-frontend.md → React, Shadcn/ui, UX
-  - 09-content.md → Learning paths, quiz types
-  - 10-deployment.md → CI/CD, Docker production
-  - 11-security.md → Security checklist
-
-- ✅ **Cập nhật CLAUDE.md** → reference context/ thay vì CONTEXT.md
-- ✅ **Xóa CONTEXT.md cũ** ở root
-
-#### Key decisions:
-| Area | Quyết định |
-|------|-----------|
-| Email service | Mailgun (free 100/ngày) |
-| Auth | OTP + Google + GitHub OAuth |
-| Tiers | Free / Pro / Ultra (monthly, token-based) |
-| Payment | MoMo + VNPay |
-| UI | Shadcn/ui + UI UX Pro Max Skill |
-| Dark mode | Có, từ đầu |
-| Responsive | Mobile-first |
-| Quiz types | Trắc nghiệm + Tự luận (AI chấm) + Code challenge |
-| Content | AI generate + review, tiếng Việt trước |
-| Deploy | Docker on DigitalOcean VPS |
-| Domain | devpathos.tech (FE) + api.devpathos.tech (BE) |
-
-#### Bước tiếp theo:
-- [ ] Bắt đầu code backend (Auth module: OTP + OAuth + JWT)
+**Learned**: Breaking large specs into topic files makes it easier for AI agents to find relevant info.
 
 ---
 
 ### 2026-01-28
-**Session: Học Claude Skills & Tạo Custom Skills**
+**Claude Skills & Custom Skills**
 
-#### Đã học:
-- ✅ **Claude Skills là gì** - Custom slash commands để tự động hóa tasks
-- ✅ **Agent Skills format** - Chuẩn mới được Claude, AMP, Gemini CLI support
-  - File: `SKILL.md` với YAML frontmatter
-  - Location: `.claude/skills/<skill-name>/SKILL.md`
-- ✅ **Symlink strategy** - Dùng `.agents/` làm source, symlink đến `.claude/`
-- ✅ **Built-in commands** - `/clear`, `/compact`, `/config`, `/model`, etc.
-- ✅ **Skill variables** - `$ARGUMENTS` để nhận input từ user
+- Learned Claude Skills format (SKILL.md with YAML frontmatter)
+- Created 8 custom skills: nest-module, nest-review, nest-test, prisma-model, react-component, commit, debug, explain
+- Symlink strategy: `.agents/skills/` (source) → `.claude/skills/` (symlink)
 
-#### Đã làm:
-- ✅ Setup folder structure: `.agents/skills/` (source) + `.claude/skills/` (symlink)
-- ✅ Tạo 8 custom skills cho dự án:
-
-| Skill | Mô tả | Category |
-|-------|-------|----------|
-| `/nest-module` | Generate NestJS module đầy đủ | Backend |
-| `/nest-review` | Review NestJS code | Backend |
-| `/nest-test` | Generate unit tests với Jest | Backend |
-| `/prisma-model` | Tạo Prisma model + migration | Backend |
-| `/react-component` | Generate React component | Frontend |
-| `/commit` | Conventional commit message | Workflow |
-| `/debug` | Debug helper - phân tích bug | Workflow |
-| `/explain` | Giải thích code/concept | Learning |
-
-- ✅ Tạo `_templates/learning-mode.md` - Shared guidelines cho tất cả skills
-
-#### Cấu trúc files:
-```
-.agents/
-└── skills/
-    ├── _templates/learning-mode.md
-    ├── commit/SKILL.md
-    ├── debug/SKILL.md
-    ├── explain/SKILL.md
-    ├── nest-module/SKILL.md
-    ├── nest-review/SKILL.md
-    ├── nest-test/SKILL.md
-    ├── prisma-model/SKILL.md
-    └── react-component/SKILL.md
-
-.claude/
-└── skills → symlink → .agents/skills
-```
-
-#### Key takeaways:
-- Skills = Markdown files với instructions cho Claude
-- `disable-model-invocation: true` = chỉ chạy khi user gọi manual
-- Có thể dùng chung skills cho Claude CLI và AMP CLI qua symlink
-- Skills nên có Learning Mode section để phù hợp với CLAUDE.md
-
-#### Bước tiếp theo:
-- [ ] Test skills trong session mới (gõ `/explain`, `/commit`, etc.)
-- [ ] Tạo thêm skill `/pr` cho PR description
-- [ ] Bắt đầu code Backend với `/nest-module`
+**Learned**: Skills = Markdown instructions for AI. `disable-model-invocation: true` = manual-only. Shared across Claude CLI and AMP CLI via symlink.
 
 ---
 
 ### 2026-01-27
-**Session: Tìm hiểu Project Setup + Test Docker**
+**Project Setup + Docker**
 
-#### Đã học:
-- ✅ **Monorepo structure** - pnpm workspace với backend/ và frontend/
-- ✅ **Database Schema (Prisma)** - 15+ models, quan hệ giữa các tables
-  - Authentication: User, OTPCode, RefreshToken
-  - Learning: LearningPath → Track → Lesson (qua TrackLesson junction)
-  - Quiz: Quiz, QuizQuestion
-  - Progress: UserProgress, QuizResult, LearningSession
-  - AI: AIInteractionLog, AIUsageQuota
-- ✅ **Docker Setup** - docker-compose.yml với postgres, redis, tools
-- ✅ **API Design** - RESTful endpoints, response format chuẩn
-- ✅ **Authentication Flow** - OTP + JWT (access token 15min, refresh token 7d)
+- Learned monorepo structure (pnpm workspace), Prisma schema (15+ models), Docker setup
+- Created `.env` from `.env.example`
+- Changed ports: PostgreSQL 5432→5434, Redis 6379→6380 (avoid conflicts)
+- Docker tested: postgres and redis healthy
 
-#### Đã làm:
-- ✅ Tạo file `.env` từ `.env.example`
-- ✅ Đổi port PostgreSQL: 5432 → 5434 (tránh conflict với project khác)
-- ✅ Đổi port Redis: 6379 → 6380 (tránh conflict)
-- ✅ Test Docker: postgres và redis đều **healthy**
-
-#### Config hiện tại:
-| Service | Port | Status |
-|---------|------|--------|
-| PostgreSQL | localhost:5434 | ✅ Running |
-| Redis | localhost:6380 | ✅ Running |
-
-#### Bước tiếp theo:
-- [ ] Khởi tạo Backend (NestJS) - tạo app, cài dependencies
-- [ ] Setup Prisma - chạy migrations
-- [ ] Tạo Auth module đầu tiên
+**Learned**: Always check for port conflicts with other local projects.
 
 ---
 
-## 📦 Deployment Resources
+### 2026-01-26
+**Domain Claims**
 
-**Phase 5: Deployment** (để dành sau khi code xong)
-
-### Checklist:
-- [x] VPS setup - DigitalOcean account với $200 credits
-- [x] Domain - devteamos.me (Namecheap)
-- [x] Domain - devpathos.tech (.TECH Domains)
-- [x] SSL Certificate - PositiveSSL (chưa activate, để dành khi deploy)
-- [x] Monitoring - Datadog Pro 2 năm
-- [ ] Tạo Droplet (Ubuntu, Singapore region)
-- [ ] Nginx setup (Reverse Proxy)
-- [ ] PM2 setup (Process Manager)
-- [ ] SSL activation (Let's Encrypt hoặc PositiveSSL)
-- [ ] CI/CD pipeline (GitHub Actions)
-- [ ] Domain DNS configuration
+- Claimed devpathos.tech (free 1 year, .TECH Domains)
+- Claimed Microsoft Azure for Students $100 credits
 
 ---
 
-## 💡 Lessons Learned
+### 2026-01-25
+**GitHub Student Pack**
 
-### GitHub Student Developer Pack
-- Cần email `.edu` hoặc email trường cấp
-- Cần thẻ sinh viên còn hạn (chụp rõ nét)
-- Duyệt nhanh nếu đủ giấy tờ
+- Registered GitHub Student Developer Pack
+- Claimed: DigitalOcean $200, Datadog Pro, devteamos.me domain, PositiveSSL certificate
 
-### DigitalOcean
-- Cần verify payment method (card/PayPal)
-- Pre-authorization ~$5 (sẽ hoàn lại sau 3-7 ngày)
-- Credits tự động add sau khi verify thành công
-- $200 credits = ~16-33 tháng VPS miễn phí (tùy cấu hình)
-
-### Datadog
-- Free up to 2 years for students
-- Chỉ dùng cho student projects (không commercial)
-- Metrics retention: 15 tháng
-- Region: US5 (us5.datadoghq.com)
-
-### Namecheap
-- Domain .me miễn phí 1 năm qua GitHub Student Pack
-- SSL certificate riêng (cần claim bằng code)
-- Có thể để domain đó, sau deploy mới trỏ DNS
-
-### .TECH Domains
-- Domain .tech miễn phí 1 năm qua GitHub Student Pack
-- Cần tạo account trên get.tech
-- Verify GitHub để apply discount $0.00
-- Control Panel: controlpanel.tech/customer
-
-### Microsoft Azure
-- $100 credits miễn phí cho students
-- Thời hạn: 1 năm hoặc cho đến khi hết credits
-- Không cần credit card để verify
-- 58+ free services (VMs, databases, storage, etc.)
-- Portal: portal.azure.com
-
----
-
-## 📊 Resources
-
-| Resource | Amount/Type | Expiry | Status |
-|----------|-------------|--------|--------|
-| DigitalOcean Credits | $200 | Jan 2027 | ✅ Active |
-| Microsoft Azure | $100 | Apr 2026 | ✅ Active |
-| Datadog Pro | Monitoring 10 servers | Jan 2028 | ✅ Active |
-| Domain devteamos.me | .me domain | Jan 2027 | ✅ Registered |
-| Domain devpathos.tech | .tech domain | Jan 2027 | ✅ Registered |
-| SSL Certificate | PositiveSSL | Jan 2027 | 🔲 Not activated |
-
----
-
-## 🔗 Quick Links
-
-| Service | URL | Account |
-|---------|-----|---------|
-| DigitalOcean | cloud.digitalocean.com | GitHub connected |
-| Microsoft Azure | portal.azure.com | GitHub connected |
-| Datadog | us5.datadoghq.com | leminhnhut.9a10.2019@gmail.com |
-| Namecheap | namecheap.com | GitHub connected |
-| .TECH Domains | controlpanel.tech | minhnhut.dev.vn@gmail.com |
-| GitHub Education | education.github.com | MinhNhut05 |
-
----
-
-## 📝 Notes
-
-### Domains Strategy
-- **devteamos.me** - Có thể dùng cho frontend (devteamos.me)
-- **devpathos.tech** - Có thể dùng cho API (api.devpathos.tech) hoặc ngược lại
-- Cả 2 đều có DNS Management miễn phí
-
-### Tổng giá trị đã claim
-| Item | Estimated Value |
-|------|-----------------|
-| DigitalOcean $200 credits | $200 |
-| Microsoft Azure $100 credits | $100 |
-| Datadog Pro 2 năm | ~$9,600 |
-| Domain .me 1 năm | ~$15 |
-| Domain .tech 1 năm | ~$50 |
-| SSL Certificate 1 năm | ~$10 |
-| **TOTAL** | **~$10,000+** |
+**Learned**: Need .edu email + valid student ID. Pre-auth ~$5 for DigitalOcean (refunded 3-7 days).

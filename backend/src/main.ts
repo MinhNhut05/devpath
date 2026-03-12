@@ -1,10 +1,21 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import helmet from 'helmet';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const cookieParser = require('cookie-parser');
 import { AppModule } from './app.module';
 import { TransformInterceptor, HttpExceptionFilter } from './common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Helmet: set secure HTTP headers mặc định
+  // Giúp giảm risk của XSS, clickjacking, MIME sniffing...
+  app.use(helmet());
+
+  // cookie-parser: cho phép đọc req.cookies
+  // Bắt buộc cho refresh token (lưu trong HttpOnly cookie)
+  app.use(cookieParser());
 
   // Global Pipes, Interceptors, Filters
   // Thứ tự xử lý: Middleware → Guards → Interceptors → Pipes → Controller → Interceptors → Filters
@@ -26,7 +37,7 @@ async function bootstrap() {
 
   // CORS: Cho phép frontend gọi API từ domain khác
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: process.env.FRONTEND_URL,
     credentials: true,
   });
 

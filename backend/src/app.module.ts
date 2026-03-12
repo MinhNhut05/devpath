@@ -1,8 +1,11 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { PrismaModule } from './prisma/index.js';
+import { AuthModule } from './modules/auth/index.js';
 
 @Module({
   imports: [
@@ -15,8 +18,34 @@ import { PrismaModule } from './prisma/index.js';
 
     // PrismaModule is @Global() so it's available everywhere
     PrismaModule,
+
+    // ThrottlerModule: Global rate limiting
+    // Bảo vệ TOÀN BỘ API khỏi abuse (DDoS, scraping...)
+    // Default: 100 requests per 60 seconds per IP
+    // Có thể override per-route bằng @Throttle() decorator
+    ThrottlerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => [
+        {
+          ttl: config.get<number>('RATE_LIMIT_TTL', 60000),
+          limit: config.get<number>('RATE_LIMIT_MAX', 100),
+        },
+      ],
+    }),
+
+    // AuthModule: JWT token generation, strategies, guards, OTP flow
+    AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    // Register ThrottlerGuard globally
+    // Mọi request sẽ bị check rate limit tự động
+    // Không cần @UseGuards(ThrottlerGuard) trên từng route
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}

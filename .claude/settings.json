@@ -1,0 +1,36 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[DevPath] Reminder: Check imports exist in CODEBASE_MAP.md before writing code.'"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /home/minhnhut_dev/projects/path-learn/backend && npx tsc --noEmit --pretty 2>&1 | head -20 || true"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[DevPath] Nhớ update: PROGRESS.md, TODO.md checkboxes, HANDOFF.md (nếu xong branch)'"
+          }
+        ]
+      }
+    ]
+  }
+}

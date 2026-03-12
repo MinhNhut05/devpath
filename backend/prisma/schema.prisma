@@ -58,6 +58,11 @@ model User {
   id        String    @id @default(uuid())
   email     String    @unique
   role      UserRole  @default(USER)
+  authProvider String?  @map("auth_provider")
+  googleId     String?  @unique @map("google_id")
+  githubId     String?  @unique @map("github_id")
+  displayName  String?  @map("display_name")
+  avatarUrl    String?  @map("avatar_url")
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
@@ -94,13 +99,13 @@ model OTPCode {
 model RefreshToken {
   id        String   @id @default(uuid())
   userId    String   @map("user_id")
-  token     String   @unique
+  tokenHash String   @unique @map("token_hash")
   expiresAt DateTime @map("expires_at")
   createdAt DateTime @default(now()) @map("created_at")
   revokedAt DateTime? @map("revoked_at")
 
   @@index([userId])
-  @@index([token])
+  @@index([tokenHash])
   @@map("refresh_tokens")
 }
 
