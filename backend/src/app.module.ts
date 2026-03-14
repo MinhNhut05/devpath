@@ -6,6 +6,7 @@ import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { PrismaModule } from './prisma/index.js';
 import { AuthModule } from './modules/auth/index.js';
+import { OnboardingModule } from './modules/onboarding/index.js';
 
 @Module({
   imports: [
@@ -35,6 +36,9 @@ import { AuthModule } from './modules/auth/index.js';
 
     // AuthModule: JWT token generation, strategies, guards, OTP flow
     AuthModule,
+
+    // OnboardingModule: onboarding questions, submit answers, AI recommendation, confirm path
+    OnboardingModule,
   ],
   controllers: [AppController],
   providers: [
