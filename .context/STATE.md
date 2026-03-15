@@ -11,7 +11,7 @@
 - **Last Completed Branch**: `feat/learning-paths-be` ✅
 - **Phase 1 Progress**: 3/8 done
 - **Next Branch**: `feat/quiz-be`
-- **Last Main Commit**: `1fbf2db` feat(onboarding): implement onboarding flow with AI recommendation
+- **Last Main Commit**: `523a8d5` Merge branch 'feat/learning-paths-be' into main
 
 ## Branch Dispatch
 
@@ -19,7 +19,7 @@
 |---|--------|--------|-------|
 | 01 | `feat/auth-be` | COMPLETED ✅ | Merged to main |
 | 02 | `feat/onboarding-be` | MERGED ✅ | Merged to main (commit 1fbf2db) |
-| 03 | `feat/learning-paths-be` | NEXT | Chưa tạo branch |
+| 03 | `feat/learning-paths-be` | MERGED ✅ | Merged to main (commit 523a8d5) |
 | 04 | `feat/quiz-be` | NOT STARTED | - |
 | 05 | `feat/progress-be` | NOT STARTED | - |
 | 06 | `feat/ai-chat-be` | NOT STARTED | - |
@@ -42,6 +42,6 @@
 
 ## Last Session
 
-- **Date**: 2026-03-14
-- **Did**: Completed `feat/onboarding-be` — implemented all 4 onboarding endpoints (questions, submit, recommendation with AI + fallback, confirm path), added AiClient with Anthropic-compatible API, 71 unit tests passing (11 new), merged to main. Phase 1 progress now 2/8 done.
-- **Next**: Start `feat/learning-paths-be` (branch 03)
+- **Date**: 2026-03-15
+- **Did**: Fixed 3 critical bugs in learning-paths-be (P0: HttpExceptionFilter strips custom fields, P1: empty track skip, P1: non-deterministic findFirst), excluded prisma/ from tsconfig.build. All 102 tests pass. Merged feat/learning-paths-be to main (523a8d5). Phase 1 progress now 3/8 done.
+- **Next**: Start `feat/quiz-be` (branch 04)
