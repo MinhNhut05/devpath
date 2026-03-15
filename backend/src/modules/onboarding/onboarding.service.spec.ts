@@ -7,7 +7,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CareerGoal, LearningBackground } from '@prisma/client';
 
 import { PrismaService } from '../../prisma/index.js';
-import { AiClient } from './recommendation/index.js';
+import { AiService } from '../ai/index.js';
 import { OnboardingService } from './onboarding.service.js';
 
 const mockUserId = 'user-uuid-123';
@@ -77,7 +77,7 @@ const mockDto = { learningPathId: mockLearningPathId };
 describe('OnboardingService', () => {
   let service: OnboardingService;
   let prisma: any;
-  let aiClient: any;
+  let aiService: any;
   let mockTx: any;
 
   beforeEach(async () => {
@@ -111,8 +111,8 @@ describe('OnboardingService', () => {
       ),
     };
 
-    // AiClient mock: chỉ cần mock method chat() duy nhất mà service dùng
-    aiClient = {
+    // AiService mock: chi can mock method chat() duy nhat ma service dung
+    aiService = {
       chat: jest.fn(),
     };
 
@@ -123,18 +123,18 @@ describe('OnboardingService', () => {
           provide: PrismaService,
           useValue: prisma,
         },
-        // Fix: AiClient phải có trong providers để NestJS DI inject được
-        // Nếu thiếu → NestJS throw "Nest can't resolve dependencies of OnboardingService"
+        // Fix: AiService phai co trong providers de NestJS DI inject duoc
+        // Neu thieu -> NestJS throw "Nest can't resolve dependencies of OnboardingService"
         {
-          provide: AiClient,
-          useValue: aiClient,
+          provide: AiService,
+          useValue: aiService,
         },
       ],
     }).compile();
 
     service = module.get<OnboardingService>(OnboardingService);
     prisma = module.get(PrismaService);
-    aiClient = module.get(AiClient);
+    aiService = module.get(AiService);
   });
 
   // ─── getRecommendation ───────────────────────────────────────────────────
@@ -144,7 +144,7 @@ describe('OnboardingService', () => {
       // Happy path: AI trả về JSON hợp lệ → source: 'ai'
       // Test này đảm bảo service thực sự gọi AI và dùng kết quả khi thành công
       prisma.onboardingData.findUnique.mockResolvedValue(mockOnboardingData);
-      aiClient.chat.mockResolvedValue(JSON.stringify({
+      aiService.chat.mockResolvedValue(JSON.stringify({
         primaryPath: 'frontend-developer',
         alternativePaths: [],
         reason: 'Dựa trên mục tiêu Frontend của bạn.',
@@ -157,7 +157,7 @@ describe('OnboardingService', () => {
       expect(prisma.onboardingData.findUnique).toHaveBeenCalledWith({
         where: { userId: mockUserId },
       });
-      expect(aiClient.chat).toHaveBeenCalledTimes(1);
+      expect(aiService.chat).toHaveBeenCalledTimes(1);
       // AI path: source phải là 'ai'
       expect(result.source).toBe('ai');
       expect(result.primaryPath).toBe('frontend-developer');
@@ -172,18 +172,18 @@ describe('OnboardingService', () => {
       await expect(promise).rejects.toThrow(NotFoundException);
       await expect(promise).rejects.toMatchObject({ status: 404 });
       // AI không được gọi nếu user chưa submit
-      expect(aiClient.chat).not.toHaveBeenCalled();
+      expect(aiService.chat).not.toHaveBeenCalled();
     });
 
     it('should return fallback recommendation when AI network error occurs', async () => {
       // Test fallback khi AI timeout/network error
       // Đảm bảo user không bị kẹt dù AI có vấn đề
       prisma.onboardingData.findUnique.mockResolvedValue(mockOnboardingData);
-      aiClient.chat.mockRejectedValue(new Error('AI API timeout after 30000ms'));
+      aiService.chat.mockRejectedValue(new Error('AI API timeout after 30000ms'));
 
       const result = await service.getRecommendation(mockUserId);
 
-      expect(aiClient.chat).toHaveBeenCalledTimes(1);
+      expect(aiService.chat).toHaveBeenCalledTimes(1);
       // Fallback path: source phải là 'fallback'
       expect(result.source).toBe('fallback');
       // Fallback dùng CAREER_GOAL_TO_SLUG[FRONTEND] = 'frontend-developer'
@@ -194,11 +194,11 @@ describe('OnboardingService', () => {
       // Test fallback khi AI trả về format sai (parser return null)
       // Đây là trường hợp AI respond nhưng không đúng format JSON mong đợi
       prisma.onboardingData.findUnique.mockResolvedValue(mockOnboardingData);
-      aiClient.chat.mockResolvedValue('Sorry, I cannot provide a recommendation in JSON format.');
+      aiService.chat.mockResolvedValue('Sorry, I cannot provide a recommendation in JSON format.');
 
       const result = await service.getRecommendation(mockUserId);
 
-      expect(aiClient.chat).toHaveBeenCalledTimes(1);
+      expect(aiService.chat).toHaveBeenCalledTimes(1);
       // Parser trả về null → fallback được dùng
       expect(result.source).toBe('fallback');
       expect(result.primaryPath).toBe('frontend-developer');

@@ -1,15 +1,10 @@
 // recommendation/index.ts - Barrel export cho recommendation engine
 //
-// Service chỉ cần import từ 1 chỗ:
-//   import { AiClient, buildOnboardingPrompt, parseRecommendation, getFallbackRecommendation } from './recommendation/index.js'
+// Service chi can import tu 1 cho:
+//   import { buildOnboardingPrompt, parseRecommendation, getFallbackRecommendation } from './recommendation/index.js'
 //
-// Tại sao dùng barrel export?
-// → Gom tất cả public API vào 1 điểm → service không cần biết internal structure
-// → Nếu sau này refactor (tách file, đổi tên) → chỉ cần sửa index.ts, không sửa service
-
-// ── AiClient ──────────────────────────────────────────────────────────────────
-export { AiClient } from './ai-client.js';
-export type { AiMessage } from './ai-client.js';
+// Note: AiClient da duoc chuyen sang shared AiModule (backend/src/modules/ai/)
+// AiService giờ được inject tự động qua @Global() AiModule
 
 // ── Prompt Builder ────────────────────────────────────────────────────────────
 export { buildOnboardingPrompt, CAREER_GOAL_TO_SLUG, VALID_PATH_SLUGS } from './onboarding-prompt.builder.js';

@@ -6,6 +6,8 @@ import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { PrismaModule } from './prisma/index.js';
 import { AuthModule } from './modules/auth/index.js';
+import { AiModule } from './modules/ai/index.js';
+import { AiChatModule } from './modules/ai-chat/index.js';
 import { OnboardingModule } from './modules/onboarding/index.js';
 import { LearningPathsModule } from './modules/learning-paths/index.js';
 import { LessonsModule } from './modules/lessons/index.js';
@@ -40,6 +42,9 @@ import { ProgressModule } from './modules/progress/index.js';
     // AuthModule: JWT token generation, strategies, guards, OTP flow
     AuthModule,
 
+    // AiModule: shared AI service (@Global) - dung boi onboarding, ai-chat, quiz grading
+    AiModule,
+
     // OnboardingModule: onboarding questions, submit answers, AI recommendation, confirm path
     OnboardingModule,
 
@@ -51,6 +56,9 @@ import { ProgressModule } from './modules/progress/index.js';
 
     // ProgressModule: overall progress, path progress, activity heatmap, learning sessions
     ProgressModule,
+
+    // AiChatModule: AI chat endpoints (chat, history, quota, models)
+    AiChatModule,
   ],
   controllers: [AppController],
   providers: [

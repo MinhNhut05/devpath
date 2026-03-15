@@ -1,18 +1,18 @@
 // prisma.config.ts (backend root)
 // Prisma 7 tìm file này ở ROOT của package (cùng cấp package.json)
 // Docs: https://pris.ly/d/config-datasource
+//
+// Dùng require() để tương thích với NestJS TypeScript compiler (CommonJS output)
+// File này chỉ dùng cho Prisma CLI, không chạy trong NestJS runtime
 
-import path from 'node:path';
-import { defineConfig } from 'prisma/config';
-import * as dotenv from 'dotenv';
+/* eslint-disable @typescript-eslint/no-require-imports */
+const path = require('path');
+const { defineConfig } = require('prisma/config');
+require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 
-// Load .env từ cùng thư mục (backend/.env)
-dotenv.config({ path: path.resolve(import.meta.dirname, '.env') });
-
-export default defineConfig({
-  schema: path.resolve(import.meta.dirname, 'prisma/schema.prisma'),
-
+module.exports = defineConfig({
+  schema: path.resolve(__dirname, 'prisma/schema.prisma'),
   datasource: {
-    url: process.env.DATABASE_URL!,
+    url: process.env.DATABASE_URL,
   },
 });

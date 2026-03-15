@@ -16,12 +16,12 @@ import {
 import type { OnboardingData, UserLearningPath } from '@prisma/client';
 
 import { PrismaService } from '../../prisma/index.js';
+import { AiService } from '../ai/index.js';
 import { ONBOARDING_QUESTIONS } from './constants/index.js';
 import type { OnboardingQuestion } from './constants/index.js';
 import type { SubmitOnboardingDto } from './dto/index.js';
 import type { ConfirmPathDto } from './dto/index.js';
 import {
-  AiClient,
   buildOnboardingPrompt,
   parseRecommendation,
   getFallbackRecommendation,
@@ -36,9 +36,9 @@ export class OnboardingService {
 
   constructor(
     private readonly prisma: PrismaService,
-    // AiClient được inject tự động nhờ @Injectable() + register trong module
-    // NestJS DI sẽ tìm AiClient provider trong OnboardingModule.providers
-    private readonly aiClient: AiClient,
+    // AiService la @Global() shared module -> tu dong available
+    // Khong can import AiModule trong OnboardingModule
+    private readonly aiService: AiService,
   ) {}
 
   // ── GET /onboarding/questions ─────────────────────────────────────────────
@@ -150,7 +150,7 @@ export class OnboardingService {
     // - AI trả về non-JSON
     // → Bất kỳ lỗi nào → log + dùng fallback
     try {
-      const rawText = await this.aiClient.chat(systemPrompt, userMessage);
+      const rawText = await this.aiService.chat(systemPrompt, userMessage);
 
       // parseRecommendation trả về null nếu AI response sai format
       // → Không throw, chỉ return null để service biết dùng fallback
