@@ -9,6 +9,7 @@ import { AuthModule } from './modules/auth/index.js';
 import { OnboardingModule } from './modules/onboarding/index.js';
 import { LearningPathsModule } from './modules/learning-paths/index.js';
 import { LessonsModule } from './modules/lessons/index.js';
+import { ProgressModule } from './modules/progress/index.js';
 
 @Module({
   imports: [
@@ -47,6 +48,9 @@ import { LessonsModule } from './modules/lessons/index.js';
 
     // LessonsModule: lesson detail, start/complete tracking, prerequisites check
     LessonsModule,
+
+    // ProgressModule: overall progress, path progress, activity heatmap, learning sessions
+    ProgressModule,
   ],
   controllers: [AppController],
   providers: [
