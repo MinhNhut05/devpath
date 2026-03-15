@@ -9,6 +9,7 @@ import { AuthModule } from './modules/auth/index.js';
 import { OnboardingModule } from './modules/onboarding/index.js';
 import { LearningPathsModule } from './modules/learning-paths/index.js';
 import { LessonsModule } from './modules/lessons/index.js';
+import { QuizzesModule } from './modules/quizzes/index.js';
 
 @Module({
   imports: [
@@ -47,6 +48,9 @@ import { LessonsModule } from './modules/lessons/index.js';
 
     // LessonsModule: lesson detail, start/complete tracking, prerequisites check
     LessonsModule,
+
+    // QuizzesModule: quiz CRUD, submit answers, essay grading, code execution
+    QuizzesModule,
   ],
   controllers: [AppController],
   providers: [

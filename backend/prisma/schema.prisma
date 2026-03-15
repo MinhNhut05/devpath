@@ -42,6 +42,8 @@ enum LearningBackground {
 enum QuestionType {
   SINGLE_CHOICE
   MULTIPLE_CHOICE
+  ESSAY            // Câu hỏi tự luận — AI grading via EssayGraderService
+  CODE_CHALLENGE   // Bài tập code — chạy test cases via CodeRunnerService
 }
 
 enum ActivityType {
@@ -266,6 +268,8 @@ model QuizQuestion {
   options       Json         // [{"id": "a", "text": "Option A"}, ...]
   correctAnswer Json         @map("correct_answer") // ["a"] or ["a", "c"] for multiple
   explanation   String?      @db.Text // Shown after answering
+  codeTemplate  String?      @map("code_template") @db.Text   // Code skeleton cho CODE_CHALLENGE (nullable — chỉ dùng cho code questions)
+  testCases     Json?        @map("test_cases")                // [{input: string, expected: string, isHidden: boolean}] — test cases cho CODE_CHALLENGE
   order         Int          // Question order in quiz
 
   createdAt DateTime @default(now()) @map("created_at")
