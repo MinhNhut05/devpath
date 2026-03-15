@@ -1,10 +1,16 @@
 // prisma/seed.ts
 // DevPath - Database Seed Script
-// Run with: npx prisma db seed
+// Run with: npx prisma db seed --config prisma/prisma.config.ts
 
+import 'dotenv/config';
 import { PrismaClient, UserRole, CareerGoal, LearningBackground, QuestionType } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
 
-const prisma = new PrismaClient();
+// Prisma 7 requires adapter for database connections
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
   console.log('🌱 Starting database seed...');
@@ -1471,14 +1477,558 @@ Deploy React application lên production.
   console.log(`✅ Created ${sessions.length} learning sessions`);
 
   // ============================================
+  // 9. CREATE BACKEND NODEJS LEARNING PATH
+  // ============================================
+  console.log('Creating Backend NodeJS learning path...');
+
+  // Backend-specific lessons
+  const backendLessons = await Promise.all([
+    prisma.lesson.upsert({
+      where: { slug: 'node-introduction' },
+      update: {},
+      create: {
+        slug: 'node-introduction',
+        title: 'Node.js Introduction',
+        summary: `
+# Node.js Introduction
+
+Node.js cho phép chạy JavaScript bên ngoài browser — trên server.
+
+## Bạn sẽ học được gì?
+
+- Node.js là gì và tại sao nó ra đời
+- V8 Engine và Event Loop
+- Modules system (CommonJS vs ESM)
+- Built-in modules: fs, path, http
+- npm và package.json
+
+## Tại sao chọn Node.js?
+
+- Cùng ngôn ngữ JavaScript cho cả frontend và backend
+- Non-blocking I/O — xử lý nhiều request cùng lúc
+- Ecosystem lớn nhất (npm registry)
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'Node.js Official Docs', url: 'https://nodejs.org/en/docs/', type: 'documentation' },
+          { title: 'Node.js Crash Course - Traversy Media', url: 'https://www.youtube.com/watch?v=fBNz5xF-Kx4', type: 'video' },
+        ]),
+        estimatedMins: 60,
+        isPublished: true,
+      },
+    }),
+
+    prisma.lesson.upsert({
+      where: { slug: 'express-basics' },
+      update: {},
+      create: {
+        slug: 'express-basics',
+        title: 'Express.js Basics',
+        summary: `
+# Express.js Basics
+
+Express là framework web phổ biến nhất cho Node.js.
+
+## Bạn sẽ học được gì?
+
+- Setting up Express server
+- Routing: GET, POST, PUT, DELETE
+- Middleware concept và usage
+- Request/Response objects
+- Error handling middleware
+- Static files serving
+
+## Practical Examples
+
+- REST API cho todo list
+- Middleware chain (logging, auth, validation)
+- Error handling best practices
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'Express.js Docs', url: 'https://expressjs.com/', type: 'documentation' },
+          { title: 'Express Crash Course', url: 'https://www.youtube.com/watch?v=SccSCuHhOw0', type: 'video' },
+        ]),
+        estimatedMins: 90,
+        isPublished: true,
+      },
+    }),
+
+    prisma.lesson.upsert({
+      where: { slug: 'sql-fundamentals' },
+      update: {},
+      create: {
+        slug: 'sql-fundamentals',
+        title: 'SQL Fundamentals',
+        summary: `
+# SQL Fundamentals
+
+SQL (Structured Query Language) là ngôn ngữ tiêu chuẩn để làm việc với relational databases.
+
+## Bạn sẽ học được gì?
+
+- Database concepts: tables, rows, columns
+- CRUD operations: SELECT, INSERT, UPDATE, DELETE
+- Filtering: WHERE, ORDER BY, LIMIT
+- Joins: INNER, LEFT, RIGHT
+- Aggregation: COUNT, SUM, AVG, GROUP BY
+- Indexes và performance basics
+
+## Tại sao SQL quan trọng?
+
+- Hầu hết applications đều dùng relational database
+- SQL knowledge transferable giữa PostgreSQL, MySQL, SQLite
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'PostgreSQL Tutorial', url: 'https://www.postgresqltutorial.com/', type: 'documentation' },
+          { title: 'SQL Tutorial - W3Schools', url: 'https://www.w3schools.com/sql/', type: 'tutorial' },
+        ]),
+        estimatedMins: 120,
+        isPublished: true,
+      },
+    }),
+
+    prisma.lesson.upsert({
+      where: { slug: 'prisma-orm' },
+      update: {},
+      create: {
+        slug: 'prisma-orm',
+        title: 'Prisma ORM',
+        summary: `
+# Prisma ORM
+
+Prisma là modern ORM cho Node.js và TypeScript — type-safe database access.
+
+## Bạn sẽ học được gì?
+
+- Prisma Schema Language (PSL)
+- Models, relations, enums
+- Prisma Client: CRUD operations
+- Migrations: prisma migrate dev
+- Seeding data
+- Prisma Studio (GUI)
+
+## Tại sao Prisma?
+
+- Auto-generated TypeScript types → compile-time safety
+- Intuitive API: prisma.user.findMany()
+- Migration system tích hợp
+- Hỗ trợ PostgreSQL, MySQL, SQLite, MongoDB
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'Prisma Docs', url: 'https://www.prisma.io/docs', type: 'documentation' },
+          { title: 'Prisma Crash Course', url: 'https://www.youtube.com/watch?v=RebA5J-rlwg', type: 'video' },
+        ]),
+        estimatedMins: 90,
+        isPublished: true,
+      },
+    }),
+
+    prisma.lesson.upsert({
+      where: { slug: 'nestjs-introduction' },
+      update: {},
+      create: {
+        slug: 'nestjs-introduction',
+        title: 'NestJS Introduction',
+        summary: `
+# NestJS Introduction
+
+NestJS là framework backend cho Node.js, lấy cảm hứng từ Angular.
+
+## Bạn sẽ học được gì?
+
+- NestJS architecture: Modules, Controllers, Services
+- Decorators: @Controller, @Get, @Post, @Injectable
+- Request lifecycle
+- Pipes và Validation
+- Exception filters
+
+## Tại sao NestJS?
+
+- Opinionated structure → dễ maintain large projects
+- Built-in TypeScript support
+- Dependency Injection (DI) pattern
+- Tích hợp sẵn nhiều tools (validation, auth, docs)
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'NestJS Official Docs', url: 'https://docs.nestjs.com/', type: 'documentation' },
+          { title: 'NestJS Crash Course', url: 'https://www.youtube.com/watch?v=wqhNoDE6pb4', type: 'video' },
+        ]),
+        estimatedMins: 90,
+        isPublished: true,
+      },
+    }),
+
+    prisma.lesson.upsert({
+      where: { slug: 'nestjs-modules-di' },
+      update: {},
+      create: {
+        slug: 'nestjs-modules-di',
+        title: 'NestJS Modules & Dependency Injection',
+        summary: `
+# NestJS Modules & Dependency Injection
+
+Hiểu sâu cách NestJS tổ chức code với Modules và Dependency Injection pattern.
+
+## Bạn sẽ học được gì?
+
+- Module system: imports, exports, providers
+- @Global() modules
+- Dependency Injection (DI) container
+- Custom providers: useClass, useValue, useFactory
+- Circular dependency resolution
+- Dynamic modules
+
+## Design Patterns
+
+- Repository pattern với Prisma
+- Service layer pattern
+- Guard pattern cho authentication
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'NestJS - Modules', url: 'https://docs.nestjs.com/modules', type: 'documentation' },
+          { title: 'NestJS - Custom Providers', url: 'https://docs.nestjs.com/fundamentals/custom-providers', type: 'documentation' },
+        ]),
+        estimatedMins: 120,
+        isPublished: true,
+      },
+    }),
+
+    // Integration lessons (for Fullstack path)
+    prisma.lesson.upsert({
+      where: { slug: 'rest-api-design' },
+      update: {},
+      create: {
+        slug: 'rest-api-design',
+        title: 'REST API Design',
+        summary: `
+# REST API Design
+
+Thiết kế RESTful APIs chuẩn, dễ sử dụng và maintain.
+
+## Bạn sẽ học được gì?
+
+- REST principles: resources, HTTP methods, status codes
+- URL naming conventions
+- Request/Response format (JSON)
+- Pagination, filtering, sorting
+- API versioning
+- Error handling standards
+- CORS configuration
+
+## Best Practices
+
+- Dùng nouns cho resources: /users, /posts
+- HTTP methods đúng ngữ cảnh: GET (read), POST (create), PUT (update), DELETE
+- Status codes rõ ràng: 200, 201, 400, 401, 404, 500
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'REST API Best Practices', url: 'https://restfulapi.net/', type: 'documentation' },
+          { title: 'RESTful API Design - Microsoft', url: 'https://learn.microsoft.com/en-us/azure/architecture/best-practices/api-design', type: 'documentation' },
+        ]),
+        estimatedMins: 90,
+        isPublished: true,
+      },
+    }),
+
+    prisma.lesson.upsert({
+      where: { slug: 'fullstack-project' },
+      update: {},
+      create: {
+        slug: 'fullstack-project',
+        title: 'Fullstack Project',
+        summary: `
+# Fullstack Project
+
+Xây dựng 1 ứng dụng fullstack hoàn chỉnh từ A đến Z.
+
+## Project: Task Management App
+
+### Frontend (React)
+- Components: TaskList, TaskForm, TaskItem
+- State management với Zustand
+- API integration với React Query
+- Routing với React Router
+
+### Backend (NestJS)
+- REST API: CRUD tasks
+- Authentication với JWT
+- Database với Prisma + PostgreSQL
+- Validation với class-validator
+
+### DevOps
+- Docker setup
+- Environment variables
+- Deployment lên Vercel + Railway
+
+## Kết quả
+
+Sau project này, bạn có 1 ứng dụng fullstack hoàn chỉnh để bỏ vào portfolio.
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'Fullstack Tutorial - The Odin Project', url: 'https://www.theodinproject.com/paths/full-stack-javascript', type: 'course' },
+        ]),
+        estimatedMins: 180,
+        isPublished: true,
+      },
+    }),
+  ]);
+
+  console.log(`✅ Created ${backendLessons.length} backend/fullstack lessons`);
+
+  // Backend lesson map
+  const backendLessonMap = Object.fromEntries(backendLessons.map(l => [l.slug, l]));
+
+  // ── Backend NodeJS Path ──────────────────────────────────────────────────
+  const backendPath = await prisma.learningPath.upsert({
+    where: { slug: 'backend-nodejs' },
+    update: {},
+    create: {
+      name: 'Backend NodeJS Developer',
+      slug: 'backend-nodejs',
+      description: 'Lộ trình hoàn chỉnh để trở thành Backend Developer với Node.js, Express, và NestJS. Từ cơ bản đến xây dựng APIs production-ready.',
+      icon: 'server',
+      difficulty: 'beginner',
+      estimatedHours: 80,
+      isPublished: true,
+      order: 2,
+    },
+  });
+
+  // Tracks for Backend path
+  const backendTracks = await Promise.all([
+    prisma.track.upsert({
+      where: { id: 'track-nodejs-basics' },
+      update: {},
+      create: {
+        id: 'track-nodejs-basics',
+        learningPathId: backendPath.id,
+        name: 'Node.js Basics',
+        description: 'Nền tảng Node.js và Express để xây dựng web server',
+        order: 1,
+        isOptional: false,
+      },
+    }),
+    prisma.track.upsert({
+      where: { id: 'track-database-sql' },
+      update: {},
+      create: {
+        id: 'track-database-sql',
+        learningPathId: backendPath.id,
+        name: 'Database & SQL',
+        description: 'Làm việc với PostgreSQL và Prisma ORM',
+        order: 2,
+        isOptional: false,
+      },
+    }),
+    prisma.track.upsert({
+      where: { id: 'track-nestjs-framework' },
+      update: {},
+      create: {
+        id: 'track-nestjs-framework',
+        learningPathId: backendPath.id,
+        name: 'NestJS Framework',
+        description: 'Framework backend hiện đại với TypeScript',
+        order: 3,
+        isOptional: false,
+      },
+    }),
+  ]);
+
+  console.log(`✅ Created ${backendTracks.length} tracks for Backend path`);
+
+  // Link backend lessons to tracks
+  await Promise.all([
+    // Node.js Basics Track
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-nodejs-basics', lessonId: backendLessonMap['node-introduction'].id } },
+      update: {},
+      create: { trackId: 'track-nodejs-basics', lessonId: backendLessonMap['node-introduction'].id, order: 1 },
+    }),
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-nodejs-basics', lessonId: backendLessonMap['express-basics'].id } },
+      update: {},
+      create: { trackId: 'track-nodejs-basics', lessonId: backendLessonMap['express-basics'].id, order: 2 },
+    }),
+
+    // Database & SQL Track
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-database-sql', lessonId: backendLessonMap['sql-fundamentals'].id } },
+      update: {},
+      create: { trackId: 'track-database-sql', lessonId: backendLessonMap['sql-fundamentals'].id, order: 1 },
+    }),
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-database-sql', lessonId: backendLessonMap['prisma-orm'].id } },
+      update: {},
+      create: { trackId: 'track-database-sql', lessonId: backendLessonMap['prisma-orm'].id, order: 2 },
+    }),
+
+    // NestJS Framework Track
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-nestjs-framework', lessonId: backendLessonMap['nestjs-introduction'].id } },
+      update: {},
+      create: { trackId: 'track-nestjs-framework', lessonId: backendLessonMap['nestjs-introduction'].id, order: 1 },
+    }),
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-nestjs-framework', lessonId: backendLessonMap['nestjs-modules-di'].id } },
+      update: {},
+      create: { trackId: 'track-nestjs-framework', lessonId: backendLessonMap['nestjs-modules-di'].id, order: 2 },
+    }),
+  ]);
+
+  console.log('✅ Linked backend lessons to tracks');
+
+  // ── Fullstack Developer Path ─────────────────────────────────────────────
+  console.log('Creating Fullstack Developer learning path...');
+
+  const fullstackPath = await prisma.learningPath.upsert({
+    where: { slug: 'fullstack-developer' },
+    update: {},
+    create: {
+      name: 'Fullstack Developer',
+      slug: 'fullstack-developer',
+      description: 'Lộ trình kết hợp Frontend và Backend để trở thành Fullstack Developer. Reuse kiến thức từ cả 2 paths, thêm phần integration.',
+      icon: 'layers',
+      difficulty: 'intermediate',
+      estimatedHours: 150,
+      isPublished: true,
+      order: 3,
+    },
+  });
+
+  // Tracks for Fullstack path — reuse lessons from Frontend + Backend
+  const fullstackTracks = await Promise.all([
+    prisma.track.upsert({
+      where: { id: 'track-fullstack-frontend' },
+      update: {},
+      create: {
+        id: 'track-fullstack-frontend',
+        learningPathId: fullstackPath.id,
+        name: 'Frontend Basics',
+        description: 'Nền tảng HTML, CSS, JavaScript cho frontend',
+        order: 1,
+        isOptional: false,
+      },
+    }),
+    prisma.track.upsert({
+      where: { id: 'track-fullstack-backend' },
+      update: {},
+      create: {
+        id: 'track-fullstack-backend',
+        learningPathId: fullstackPath.id,
+        name: 'Backend Basics',
+        description: 'Node.js và Express cho backend',
+        order: 2,
+        isOptional: false,
+      },
+    }),
+    prisma.track.upsert({
+      where: { id: 'track-fullstack-integration' },
+      update: {},
+      create: {
+        id: 'track-fullstack-integration',
+        learningPathId: fullstackPath.id,
+        name: 'Integration',
+        description: 'Kết nối frontend và backend thành ứng dụng hoàn chỉnh',
+        order: 3,
+        isOptional: false,
+      },
+    }),
+  ]);
+
+  console.log(`✅ Created ${fullstackTracks.length} tracks for Fullstack path`);
+
+  // Link lessons to Fullstack tracks — reusing existing lessons
+  await Promise.all([
+    // Frontend Basics Track — reuse from Frontend path
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-fullstack-frontend', lessonId: lessonMap['html-basics'].id } },
+      update: {},
+      create: { trackId: 'track-fullstack-frontend', lessonId: lessonMap['html-basics'].id, order: 1 },
+    }),
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-fullstack-frontend', lessonId: lessonMap['css-fundamentals'].id } },
+      update: {},
+      create: { trackId: 'track-fullstack-frontend', lessonId: lessonMap['css-fundamentals'].id, order: 2 },
+    }),
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-fullstack-frontend', lessonId: lessonMap['javascript-basics'].id } },
+      update: {},
+      create: { trackId: 'track-fullstack-frontend', lessonId: lessonMap['javascript-basics'].id, order: 3 },
+    }),
+
+    // Backend Basics Track — reuse from Backend path
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-fullstack-backend', lessonId: backendLessonMap['node-introduction'].id } },
+      update: {},
+      create: { trackId: 'track-fullstack-backend', lessonId: backendLessonMap['node-introduction'].id, order: 1 },
+    }),
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-fullstack-backend', lessonId: backendLessonMap['express-basics'].id } },
+      update: {},
+      create: { trackId: 'track-fullstack-backend', lessonId: backendLessonMap['express-basics'].id, order: 2 },
+    }),
+
+    // Integration Track — new lessons
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-fullstack-integration', lessonId: backendLessonMap['rest-api-design'].id } },
+      update: {},
+      create: { trackId: 'track-fullstack-integration', lessonId: backendLessonMap['rest-api-design'].id, order: 1 },
+    }),
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-fullstack-integration', lessonId: backendLessonMap['fullstack-project'].id } },
+      update: {},
+      create: { trackId: 'track-fullstack-integration', lessonId: backendLessonMap['fullstack-project'].id, order: 2 },
+    }),
+  ]);
+
+  console.log('✅ Linked fullstack lessons to tracks');
+
+  // ── Prerequisites for new lessons ────────────────────────────────────────
+  console.log('Creating prerequisites for backend/fullstack lessons...');
+
+  await Promise.all([
+    // Express requires Node.js
+    prisma.lessonPrerequisite.upsert({
+      where: { lessonId_prerequisiteId: { lessonId: backendLessonMap['express-basics'].id, prerequisiteId: backendLessonMap['node-introduction'].id } },
+      update: {},
+      create: { lessonId: backendLessonMap['express-basics'].id, prerequisiteId: backendLessonMap['node-introduction'].id },
+    }),
+    // Prisma requires SQL
+    prisma.lessonPrerequisite.upsert({
+      where: { lessonId_prerequisiteId: { lessonId: backendLessonMap['prisma-orm'].id, prerequisiteId: backendLessonMap['sql-fundamentals'].id } },
+      update: {},
+      create: { lessonId: backendLessonMap['prisma-orm'].id, prerequisiteId: backendLessonMap['sql-fundamentals'].id },
+    }),
+    // NestJS Intro requires Express
+    prisma.lessonPrerequisite.upsert({
+      where: { lessonId_prerequisiteId: { lessonId: backendLessonMap['nestjs-introduction'].id, prerequisiteId: backendLessonMap['express-basics'].id } },
+      update: {},
+      create: { lessonId: backendLessonMap['nestjs-introduction'].id, prerequisiteId: backendLessonMap['express-basics'].id },
+    }),
+    // NestJS Modules requires NestJS Intro
+    prisma.lessonPrerequisite.upsert({
+      where: { lessonId_prerequisiteId: { lessonId: backendLessonMap['nestjs-modules-di'].id, prerequisiteId: backendLessonMap['nestjs-introduction'].id } },
+      update: {},
+      create: { lessonId: backendLessonMap['nestjs-modules-di'].id, prerequisiteId: backendLessonMap['nestjs-introduction'].id },
+    }),
+    // Fullstack Project requires REST API Design
+    prisma.lessonPrerequisite.upsert({
+      where: { lessonId_prerequisiteId: { lessonId: backendLessonMap['fullstack-project'].id, prerequisiteId: backendLessonMap['rest-api-design'].id } },
+      update: {},
+      create: { lessonId: backendLessonMap['fullstack-project'].id, prerequisiteId: backendLessonMap['rest-api-design'].id },
+    }),
+  ]);
+
+  console.log('✅ Created backend/fullstack prerequisites');
+
+  // ============================================
   // DONE
   // ============================================
   console.log('\n🎉 Database seeding completed successfully!');
   console.log('\nCreated:');
   console.log(`  - 2 users (admin + test)`);
-  console.log(`  - 1 learning path (Frontend ReactJS)`);
-  console.log(`  - 5 tracks`);
-  console.log(`  - ${lessons.length} lessons`);
+  console.log(`  - 3 learning paths (Frontend ReactJS, Backend NodeJS, Fullstack)`);
+  console.log(`  - ${frontendTracks.length + backendTracks.length + fullstackTracks.length} tracks total`);
+  console.log(`  - ${lessons.length + backendLessons.length} lessons total`);
   console.log(`  - 3 quizzes with 15 questions total`);
   console.log(`  - Sample progress data for test user`);
   console.log('\nTest accounts:');
@@ -1493,4 +2043,5 @@ main()
   })
   .finally(async () => {
     await prisma.$disconnect();
+    await pool.end();
   });

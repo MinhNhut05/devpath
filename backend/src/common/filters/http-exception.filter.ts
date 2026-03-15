@@ -59,6 +59,23 @@ export class HttpExceptionFilter implements ExceptionFilter {
         if (Array.isArray(errorObj.message)) {
           message = errorObj.message[0];
           details = errorObj.message;
+        } else {
+          // Extract custom fields (vd: missingPrerequisites) → đưa vào details
+          // Loại bỏ NestJS internal keys: message, statusCode, error
+          // → Chỉ giữ lại custom data mà service đã throw kèm
+          //
+          // Ví dụ: ForbiddenException({ message: '...', missingPrerequisites: [...] })
+          // → customFields = { missingPrerequisites: [...] }
+          // → details = { missingPrerequisites: [...] }
+          const {
+            message: _msg,
+            statusCode: _sc,
+            error: _err,
+            ...customFields
+          } = errorObj;
+          if (Object.keys(customFields).length > 0) {
+            details = customFields;
+          }
         }
       } else if (typeof exceptionResponse === 'string') {
         message = exceptionResponse;

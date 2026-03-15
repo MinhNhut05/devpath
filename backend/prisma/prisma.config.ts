@@ -4,17 +4,27 @@
 
 import path from 'node:path';
 import { defineConfig } from 'prisma/config';
+import * as dotenv from 'dotenv';
 
-// Load environment variables from .env file
-import 'dotenv/config';
+// ESM không có __dirname → dùng import.meta.dirname (Node 21.2+)
+// Hoặc fallback về process.cwd() (thư mục backend/ khi chạy pnpm prisma)
+const envPath = path.resolve(
+  (import.meta.dirname ?? process.cwd()),
+  '../.env',
+);
+dotenv.config({ path: envPath });
 
 export default defineConfig({
-  // Schema file location
-  schema: path.resolve(__dirname, 'schema.prisma'),
+  schema: path.resolve(
+    (import.meta.dirname ?? process.cwd()),
+    'schema.prisma',
+  ),
 
-  // Datasource configuration for migrations
   datasource: {
-    // Database URL for migrations
     url: process.env.DATABASE_URL!,
+  },
+
+  migrations: {
+    seed: 'ts-node prisma/seed.ts',
   },
 });

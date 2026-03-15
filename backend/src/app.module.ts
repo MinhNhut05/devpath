@@ -7,6 +7,8 @@ import { AppService } from './app.service.js';
 import { PrismaModule } from './prisma/index.js';
 import { AuthModule } from './modules/auth/index.js';
 import { OnboardingModule } from './modules/onboarding/index.js';
+import { LearningPathsModule } from './modules/learning-paths/index.js';
+import { LessonsModule } from './modules/lessons/index.js';
 
 @Module({
   imports: [
@@ -39,6 +41,12 @@ import { OnboardingModule } from './modules/onboarding/index.js';
 
     // OnboardingModule: onboarding questions, submit answers, AI recommendation, confirm path
     OnboardingModule,
+
+    // LearningPathsModule: list paths, path detail, path lessons, enroll
+    LearningPathsModule,
+
+    // LessonsModule: lesson detail, start/complete tracking, prerequisites check
+    LessonsModule,
   ],
   controllers: [AppController],
   providers: [

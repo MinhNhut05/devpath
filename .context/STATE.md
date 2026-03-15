@@ -7,19 +7,19 @@
 ## Current Focus
 
 - **Phase**: Phase 1 - Foundation
-- **Active Branch**: none (chuẩn bị `feat/onboarding-be`)
-- **Last Completed Branch**: `feat/auth-be` ✅
-- **Phase 1 Progress**: 1/8 done
-- **Next Branch**: `feat/onboarding-be`
-- **Last Main Commit**: `8245c03` chore: update docs, Dockerfiles, and gitignore for monorepo setup
+- **Active Branch**: none
+- **Last Completed Branch**: `feat/learning-paths-be` ✅
+- **Phase 1 Progress**: 3/8 done
+- **Next Branch**: `feat/quiz-be`
+- **Last Main Commit**: `1fbf2db` feat(onboarding): implement onboarding flow with AI recommendation
 
 ## Branch Dispatch
 
 | # | Branch | Status | Notes |
 |---|--------|--------|-------|
 | 01 | `feat/auth-be` | COMPLETED ✅ | Merged to main |
-| 02 | `feat/onboarding-be` | NEXT | Chưa tạo branch |
-| 03 | `feat/learning-paths-be` | NOT STARTED | - |
+| 02 | `feat/onboarding-be` | MERGED ✅ | Merged to main (commit 1fbf2db) |
+| 03 | `feat/learning-paths-be` | NEXT | Chưa tạo branch |
 | 04 | `feat/quiz-be` | NOT STARTED | - |
 | 05 | `feat/progress-be` | NOT STARTED | - |
 | 06 | `feat/ai-chat-be` | NOT STARTED | - |
@@ -42,6 +42,6 @@
 
 ## Last Session
 
-- **Date**: 2026-03-08
-- **Did**: Closed `feat/auth-be` — added Helmet + CORS, completed VERIFICATION/HANDOFF docs, auth branch ready and merged to main. Phase 1 progress now 1/8 done.
-- **Next**: Start `feat/onboarding-be` (branch 02)
+- **Date**: 2026-03-14
+- **Did**: Completed `feat/onboarding-be` — implemented all 4 onboarding endpoints (questions, submit, recommendation with AI + fallback, confirm path), added AiClient with Anthropic-compatible API, 71 unit tests passing (11 new), merged to main. Phase 1 progress now 2/8 done.
+- **Next**: Start `feat/learning-paths-be` (branch 03)
