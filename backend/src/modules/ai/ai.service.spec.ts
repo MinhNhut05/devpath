@@ -183,31 +183,29 @@ describe('AiService', () => {
 
   describe('getAvailableModels()', () => {
     it('should return free tier models', () => {
-      // Free tier: chi co Gemini Flash models
+      // Free tier: chi co Gemini Flash model (ag/ prefix format)
       const models = service.getAvailableModels('free');
 
-      expect(models).toContain('gemini-2.5-flash');
-      expect(models).toContain('gemini-2.5-flash-thinking');
-      expect(models).toHaveLength(2);
+      expect(models).toContain('ag/gemini-3-flash');
+      expect(models).toHaveLength(1);
     });
 
     it('should return pro tier models (includes free + more)', () => {
-      // Pro tier: free models + Claude Sonnet, Gemini Pro
+      // Pro tier: free models + Gemini Pro high
       const models = service.getAvailableModels('pro');
 
-      expect(models).toContain('gemini-2.5-flash');
-      expect(models).toContain('claude-sonnet-4-5');
-      expect(models).toContain('gemini-3-pro-low');
-      expect(models.length).toBeGreaterThan(2);
+      expect(models).toContain('ag/gemini-3-flash');
+      expect(models).toContain('ag/gemini-3.1-pro-high');
+      expect(models.length).toBeGreaterThan(1);
     });
 
     it('should return ultra tier models (includes all)', () => {
-      // Ultra tier: tat ca models ke ca Claude Opus
+      // Ultra tier: tat ca models ke ca Claude Sonnet
       const models = service.getAvailableModels('ultra');
 
-      expect(models).toContain('claude-opus-4-6-thinking');
-      expect(models).toContain('claude-sonnet-4-5');
-      expect(models).toContain('gemini-2.5-flash');
+      expect(models).toContain('ag/claude-sonnet-4-6');
+      expect(models).toContain('ag/gemini-3.1-pro-high');
+      expect(models).toContain('ag/gemini-3-flash');
     });
 
     it('should fallback to free tier for unknown tier', () => {

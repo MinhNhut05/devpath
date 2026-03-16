@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
+import session from 'express-session';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const cookieParser = require('cookie-parser');
 import { AppModule } from './app.module';
@@ -12,6 +13,20 @@ async function bootstrap() {
   // Helmet: set secure HTTP headers mặc định
   // Giúp giảm risk của XSS, clickjacking, MIME sniffing...
   app.use(helmet());
+
+  // express-session: cần cho OAuth flow (Passport lưu state parameter vào session để chống CSRF)
+  // Session chỉ dùng tạm trong OAuth redirect, không dùng cho auth chính (JWT-based)
+  app.use(
+    session({
+      secret: process.env.SESSION_SECRET || 'devpath-session-secret',
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        maxAge: 5 * 60 * 1000, // 5 phút - đủ cho OAuth redirect flow
+        secure: process.env.NODE_ENV === 'production',
+      },
+    }),
+  );
 
   // cookie-parser: cho phép đọc req.cookies
   // Bắt buộc cho refresh token (lưu trong HttpOnly cookie)

@@ -223,6 +223,12 @@ export class AuthController {
     );
 
     try {
+      // Check lỗi từ Guard (Passport fail ở guard level, TRƯỚC khi vào method)
+      // Guard gắn error vào req.authError thay vì throw → cho phép redirect
+      if ((req as any).authError) {
+        throw (req as any).authError;
+      }
+
       const profile = req.user as any;
       const user = await this.authService.findOrCreateOAuthUser(profile);
       const tokens = await this.authService.generateTokenPair(user);
@@ -233,12 +239,9 @@ export class AuthController {
         `${frontendUrl}/auth/callback?token=${tokens.accessToken}&isNewUser=${user.isNewUser}`,
       );
     } catch (error) {
-      // Log for debugging — giúp identify misconfigured secrets
       this.logger.error(
         `Google OAuth callback failed: ${error instanceof Error ? error.message : String(error)}`,
       );
-
-      // Redirect về login với error param thay vì hiện 500 JSON
       res.redirect(`${frontendUrl}/login?error=google`);
     }
   }
@@ -270,6 +273,11 @@ export class AuthController {
     );
 
     try {
+      // Check lỗi từ Guard (Passport fail ở guard level, TRƯỚC khi vào method)
+      if ((req as any).authError) {
+        throw (req as any).authError;
+      }
+
       const profile = req.user as any;
       const user = await this.authService.findOrCreateOAuthUser(profile);
       const tokens = await this.authService.generateTokenPair(user);
@@ -280,12 +288,9 @@ export class AuthController {
         `${frontendUrl}/auth/callback?token=${tokens.accessToken}&isNewUser=${user.isNewUser}`,
       );
     } catch (error) {
-      // Log for debugging — giúp identify misconfigured secrets
       this.logger.error(
         `GitHub OAuth callback failed: ${error instanceof Error ? error.message : String(error)}`,
       );
-
-      // Redirect về login với error param thay vì hiện 500 JSON
       res.redirect(`${frontendUrl}/login?error=github`);
     }
   }
