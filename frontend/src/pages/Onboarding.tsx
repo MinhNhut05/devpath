@@ -14,12 +14,20 @@ interface Question {
 }
 interface Recommendation {
   source: 'ai' | 'fallback';
-  recommendation: {
-    primaryPath: { name: string; reason: string };
-    estimatedWeeks: number;
-    keyTopics: string[];
-  };
+  primaryPath: string;
+  alternativePaths: string[];
+  reason: string;
+  focusAreas: string[];
+  tips: string[];
 }
+
+// Mapping slug → display name (vì backend trả về slug, cần hiển thị tên đẹp cho user)
+const PATH_NAMES: Record<string, string> = {
+  'frontend-developer': 'Frontend Developer',
+  'backend-developer': 'Backend Developer',
+  'fullstack-developer': 'Fullstack Developer',
+  'ai-python': 'AI / Data Science (Python)',
+};
 
 type Step = 'questions' | 'recommendation' | 'done';
 
@@ -153,7 +161,7 @@ export default function Onboarding() {
 
   // ── Render: Recommendation ────────────────────────────────────────────────
   if (step === 'recommendation' && recommendation) {
-    const rec = recommendation.recommendation;
+    const pathDisplayName = PATH_NAMES[recommendation.primaryPath] ?? recommendation.primaryPath;
     return (
       <div className="min-h-screen bg-gray-50 py-10 px-4">
         <div className="max-w-xl mx-auto">
@@ -169,19 +177,41 @@ export default function Onboarding() {
           </div>
 
           <div className="bg-white rounded-xl shadow-sm p-6 mb-4">
-            <h2 className="font-semibold text-lg mb-1">{rec.primaryPath?.name ?? 'Learning Path'}</h2>
-            <p className="text-gray-500 text-sm mb-4">{rec.primaryPath?.reason ?? ''}</p>
-            <div className="flex items-center gap-4 text-sm text-gray-600">
-              <span>⏱ ~{rec.estimatedWeeks ?? '?'} tuần</span>
-            </div>
-            {rec.keyTopics?.length > 0 && (
-              <div className="mt-4">
-                <p className="text-sm font-medium text-gray-700 mb-2">Chủ đề chính:</p>
+            <h2 className="font-semibold text-lg mb-1">{pathDisplayName}</h2>
+            <p className="text-gray-500 text-sm mb-4">{recommendation.reason}</p>
+
+            {recommendation.alternativePaths.length > 0 && (
+              <div className="mb-4">
+                <p className="text-sm font-medium text-gray-700 mb-2">Lộ trình thay thế:</p>
                 <div className="flex flex-wrap gap-2">
-                  {rec.keyTopics.map((t: string) => (
-                    <span key={t} className="bg-blue-50 text-blue-700 text-xs px-2 py-1 rounded-full">{t}</span>
+                  {recommendation.alternativePaths.map((slug) => (
+                    <span key={slug} className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
+                      {PATH_NAMES[slug] ?? slug}
+                    </span>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {recommendation.focusAreas.length > 0 && (
+              <div className="mt-4">
+                <p className="text-sm font-medium text-gray-700 mb-2">Chủ đề cần tập trung:</p>
+                <div className="flex flex-wrap gap-2">
+                  {recommendation.focusAreas.map((topic) => (
+                    <span key={topic} className="bg-blue-50 text-blue-700 text-xs px-2 py-1 rounded-full">{topic}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {recommendation.tips.length > 0 && (
+              <div className="mt-4">
+                <p className="text-sm font-medium text-gray-700 mb-2">Mẹo học tập:</p>
+                <ul className="list-disc list-inside space-y-1">
+                  {recommendation.tips.map((tip) => (
+                    <li key={tip} className="text-sm text-gray-600">{tip}</li>
+                  ))}
+                </ul>
               </div>
             )}
           </div>

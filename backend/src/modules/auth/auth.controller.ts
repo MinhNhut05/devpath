@@ -24,6 +24,7 @@ import {
   HttpCode,
   HttpStatus,
   UnauthorizedException,
+  Logger,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
@@ -40,6 +41,8 @@ import { GoogleAuthGuard, GithubAuthGuard, JwtAuthGuard } from './guards/index.j
 
 @Controller('auth')
 export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
+
   constructor(
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
@@ -214,19 +217,30 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
   async googleCallback(@Req() req: Request, @Res() res: Response) {
-    const profile = req.user as any;
-    const user = await this.authService.findOrCreateOAuthUser(profile);
-    const tokens = await this.authService.generateTokenPair(user);
-
-    this.setRefreshTokenCookie(res, tokens.refreshToken);
-
     const frontendUrl = this.configService.get<string>(
       'FRONTEND_URL',
-      'http://localhost:5173',
+      'http://localhost:5174',
     );
-    res.redirect(
-      `${frontendUrl}/auth/callback?token=${tokens.accessToken}&isNewUser=${user.isNewUser}`,
-    );
+
+    try {
+      const profile = req.user as any;
+      const user = await this.authService.findOrCreateOAuthUser(profile);
+      const tokens = await this.authService.generateTokenPair(user);
+
+      this.setRefreshTokenCookie(res, tokens.refreshToken);
+
+      res.redirect(
+        `${frontendUrl}/auth/callback?token=${tokens.accessToken}&isNewUser=${user.isNewUser}`,
+      );
+    } catch (error) {
+      // Log for debugging — giúp identify misconfigured secrets
+      this.logger.error(
+        `Google OAuth callback failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
+
+      // Redirect về login với error param thay vì hiện 500 JSON
+      res.redirect(`${frontendUrl}/login?error=google`);
+    }
   }
 
   // ─── GitHub OAuth ─────────────────────────────────────────────────────────
@@ -250,19 +264,30 @@ export class AuthController {
   @Get('github/callback')
   @UseGuards(GithubAuthGuard)
   async githubCallback(@Req() req: Request, @Res() res: Response) {
-    const profile = req.user as any;
-    const user = await this.authService.findOrCreateOAuthUser(profile);
-    const tokens = await this.authService.generateTokenPair(user);
-
-    this.setRefreshTokenCookie(res, tokens.refreshToken);
-
     const frontendUrl = this.configService.get<string>(
       'FRONTEND_URL',
-      'http://localhost:5173',
+      'http://localhost:5174',
     );
-    res.redirect(
-      `${frontendUrl}/auth/callback?token=${tokens.accessToken}&isNewUser=${user.isNewUser}`,
-    );
+
+    try {
+      const profile = req.user as any;
+      const user = await this.authService.findOrCreateOAuthUser(profile);
+      const tokens = await this.authService.generateTokenPair(user);
+
+      this.setRefreshTokenCookie(res, tokens.refreshToken);
+
+      res.redirect(
+        `${frontendUrl}/auth/callback?token=${tokens.accessToken}&isNewUser=${user.isNewUser}`,
+      );
+    } catch (error) {
+      // Log for debugging — giúp identify misconfigured secrets
+      this.logger.error(
+        `GitHub OAuth callback failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
+
+      // Redirect về login với error param thay vì hiện 500 JSON
+      res.redirect(`${frontendUrl}/login?error=github`);
+    }
   }
 
   // ─── Refresh Token ────────────────────────────────────────────────────────

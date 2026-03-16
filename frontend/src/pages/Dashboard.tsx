@@ -12,7 +12,7 @@ interface User {
 // Dashboard: hiển thị thông tin user + nút logout
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { user, setAuth, logout } = useAuthStore();
+  const { user, setUser, logout } = useAuthStore();
   const [meData, setMeData] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -22,7 +22,7 @@ export default function Dashboard() {
       .then((res) => {
         setMeData(res.data.data);
         // Cập nhật user trong store nếu chưa có
-        if (!user) setAuth('', res.data.data);
+        if (!user) setUser(res.data.data);
       })
       .catch(() => {
         logout();

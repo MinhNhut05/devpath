@@ -62,22 +62,9 @@ export interface AiChatOptions {
 // -> Default fallback = free cho unknown tier
 
 const MODEL_TIERS: Record<string, string[]> = {
-  free: ['gemini-2.5-flash', 'gemini-2.5-flash-thinking'],
-  pro: [
-    'gemini-2.5-flash',
-    'gemini-2.5-flash-thinking',
-    'claude-sonnet-4-5',
-    'gemini-3-pro-low',
-    'gemini-3-pro-high',
-  ],
-  ultra: [
-    'gemini-2.5-flash',
-    'gemini-2.5-flash-thinking',
-    'claude-sonnet-4-5',
-    'gemini-3-pro-low',
-    'gemini-3-pro-high',
-    'claude-opus-4-6-thinking',
-  ],
+  free:  ['ag/gemini-3-flash'],
+  pro:   ['ag/gemini-3-flash', 'ag/gemini-3.1-pro-high'],
+  ultra: ['ag/gemini-3-flash', 'ag/gemini-3.1-pro-high', 'ag/claude-sonnet-4-6'],
 };
 
 // ── AiService class ──────────────────────────────────────────────────────────
@@ -98,7 +85,7 @@ export class AiService {
       'https://manager.devteamos.me',
     );
     this.apiKey = this.configService.get<string>('AI_API_KEY', '');
-    this.model = this.configService.get<string>('AI_MODEL', 'gemini-2.5-flash');
+    this.model = this.configService.get<string>('AI_MODEL', 'ag/gemini-3-flash');
   }
 
   /**
