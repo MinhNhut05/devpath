@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller.js';
@@ -12,6 +13,7 @@ import { OnboardingModule } from './modules/onboarding/index.js';
 import { LearningPathsModule } from './modules/learning-paths/index.js';
 import { LessonsModule } from './modules/lessons/index.js';
 import { ProgressModule } from './modules/progress/index.js';
+import { SubscriptionsModule } from './modules/subscriptions/index.js';
 
 @Module({
   imports: [
@@ -24,6 +26,10 @@ import { ProgressModule } from './modules/progress/index.js';
 
     // PrismaModule is @Global() so it's available everywhere
     PrismaModule,
+
+    // ScheduleModule: enables @Cron() decorators for scheduled tasks
+    // Dùng cho subscription expiry cron job (midnight daily)
+    ScheduleModule.forRoot(),
 
     // ThrottlerModule: Global rate limiting
     // Bảo vệ TOÀN BỘ API khỏi abuse (DDoS, scraping...)
@@ -59,6 +65,9 @@ import { ProgressModule } from './modules/progress/index.js';
 
     // AiChatModule: AI chat endpoints (chat, history, quota, models)
     AiChatModule,
+
+    // SubscriptionsModule: plans, current subscription, payment history
+    SubscriptionsModule,
   ],
   controllers: [AppController],
   providers: [
