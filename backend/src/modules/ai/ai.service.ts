@@ -24,21 +24,27 @@ export interface AiMessage {
 }
 
 /**
- * Request body gui len AI API (Anthropic-compatible format).
+ * Request body gui len AI API.
+ * stream: false de nhan JSON response thay vi SSE (Server-Sent Events).
+ * API gateway (manager.devteamos.me) accept ca Anthropic va OpenAI format,
+ * nhung voi stream:false no tra ve OpenAI-compatible JSON.
  */
 interface AiRequestBody {
   model: string;
   max_tokens: number;
   system: string;
   messages: AiMessage[];
+  stream: boolean;
 }
 
 /**
- * Shape cua response tu AI API.
- * Chi lay phan content[0].text, bo qua cac field khac.
+ * Shape cua response tu AI API (OpenAI-compatible format khi stream:false).
+ * API gateway tra ve format nay thay vi Anthropic format.
  */
 interface AiApiResponse {
-  content: Array<{ type: string; text: string }>;
+  choices?: Array<{ message: { role: string; content: string } }>;
+  // Fallback: Anthropic format (content[].text) phong truong hop API thay doi
+  content?: Array<{ type: string; text: string }>;
 }
 
 /**
@@ -112,6 +118,7 @@ export class AiService {
       max_tokens: options?.maxTokens ?? 1024,
       system: systemPrompt,
       messages: [{ role: 'user', content: userMessage }],
+      stream: false, // Quan trong: false de nhan JSON, true = SSE stream
     };
 
     // AbortController de implement timeout voi native fetch
@@ -140,7 +147,11 @@ export class AiService {
 
       const data = (await response.json()) as AiApiResponse;
 
-      const text = data.content?.[0]?.text;
+      // API gateway tra ve OpenAI format (choices[].message.content)
+      // khi stream:false, fallback Anthropic format (content[].text)
+      const text =
+        data.choices?.[0]?.message?.content ??  // OpenAI format
+        data.content?.[0]?.text;                // Anthropic format (fallback)
       if (!text) {
         throw new Error('AI API response missing content text');
       }

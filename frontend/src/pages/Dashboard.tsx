@@ -174,6 +174,7 @@ export default function Dashboard() {
                   </div>
 
                   <button
+                    onClick={() => { if (path.currentLesson?.slug) navigate(`/lesson/${path.currentLesson.slug}`); }}
                     disabled={!path.currentLesson}
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2.5 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                   >
@@ -181,6 +182,14 @@ export default function Dashboard() {
                   </button>
                 </div>
               ))}
+
+              {/* Link khám phá thêm — luôn hiện dù đã có lộ trình */}
+              <button
+                onClick={() => navigate('/explore')}
+                className="w-full border-2 border-dashed border-gray-200 hover:border-blue-400 text-gray-500 hover:text-blue-600 text-sm font-medium py-3 rounded-xl transition-colors"
+              >
+                + Khám phá thêm lộ trình
+              </button>
             </div>
           ) : (
             /* Empty state CTA */
@@ -188,8 +197,8 @@ export default function Dashboard() {
               <p className="text-gray-500 text-sm mb-1">Chưa có lộ trình nào</p>
               <p className="text-gray-400 text-xs mb-4">Hãy khám phá và chọn lộ trình phù hợp với bạn</p>
               <button
-                disabled
-                className="bg-blue-600 text-white text-sm font-medium px-5 py-2.5 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed"
+                onClick={() => navigate('/explore')}
+                className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors"
               >
                 Khám phá lộ trình →
               </button>
