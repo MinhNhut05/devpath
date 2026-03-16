@@ -126,15 +126,25 @@ export default function Dashboard() {
               </div>
               <div>
                 <p className="font-semibold text-gray-800 dark:text-gray-100">{user.displayName}</p>
-                <span
-                  className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                    user.tier === 'Pro'
-                      ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
-                      : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                  }`}
-                >
-                  {user.tier}
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                      user.tier === 'Pro'
+                        ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+                        : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                    }`}
+                  >
+                    {user.tier}
+                  </span>
+                  {user.tier.toLowerCase() === 'free' && (
+                    <button
+                      onClick={() => navigate('/plans')}
+                      className="text-xs px-2 py-0.5 rounded-full font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+                    >
+                      ⚡ Nâng cấp
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -275,6 +285,14 @@ export default function Dashboard() {
             </div>
           </Link>
         </div>
+
+        {/* ── Section 5: Settings link ──────────────────────────── */}
+        <button
+          onClick={() => navigate('/settings')}
+          className="w-full text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors py-2"
+        >
+          ⚙️  Cài đặt & Thanh toán
+        </button>
 
       </div>
     </div>

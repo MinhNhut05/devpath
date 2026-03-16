@@ -10,6 +10,9 @@ import Explore from './pages/Explore';
 import Lesson from './pages/Lesson';
 import Quiz from './pages/Quiz';
 import LessonLayout from './pages/LessonLayout';
+import Plans from './pages/Plans';
+import PaymentResult from './pages/PaymentResult';
+import Settings from './pages/Settings';
 
 export default function App() {
   const token = useAuthStore((s) => s.accessToken);
@@ -31,6 +34,9 @@ export default function App() {
           <LessonLayout><Lesson /></LessonLayout>
         </ProtectedRoute>
       } />
+      <Route path="/plans/result" element={<ProtectedRoute><PaymentResult /></ProtectedRoute>} />
+      <Route path="/plans" element={<ProtectedRoute><Plans /></ProtectedRoute>} />
+      <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
 
       {/* Default */}
       <Route path="*" element={<Navigate to={token ? '/dashboard' : '/login'} replace />} />
