@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Flame, Clock, BookOpen, MessageSquare, LogOut } from 'lucide-react';
+import { Flame, Clock, BookOpen, MessageSquare, LogOut, Shield } from 'lucide-react';
 import api from '../services/api';
 import { useAuthStore } from '../stores/authStore';
 import ThemeToggle from '../components/ThemeToggle';
@@ -51,7 +51,7 @@ interface DashboardOverview {
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { logout } = useAuthStore();
+  const { logout, user: authUser } = useAuthStore();
 
   const [data, setData] = useState<DashboardOverview | null>(null);
   const [loading, setLoading] = useState(true);
@@ -148,8 +148,17 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* ThemeToggle + Nút đăng xuất */}
+            {/* Admin link + ThemeToggle + Nút đăng xuất */}
             <div className="flex items-center gap-1">
+              {authUser?.role === 'ADMIN' && (
+                <button
+                  onClick={() => navigate('/admin')}
+                  className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors mr-2"
+                >
+                  <Shield size={15} />
+                  Admin
+                </button>
+              )}
               <ThemeToggle />
               <button
                 onClick={handleLogout}
