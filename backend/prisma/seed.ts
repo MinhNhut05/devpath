@@ -2021,14 +2021,1590 @@ Sau project này, bạn có 1 ứng dụng fullstack hoàn chỉnh để bỏ v�
   console.log('✅ Created backend/fullstack prerequisites');
 
   // ============================================
+  // 11. CREATE AI / DATA SCIENCE (PYTHON) LEARNING PATH
+  // ============================================
+  console.log('Creating AI / Data Science (Python) learning path...');
+
+  // AI/Python Learning Path
+  await prisma.learningPath.upsert({
+    where: { slug: 'ai-python' },
+    update: {},
+    create: {
+      name: 'AI / Data Science (Python)',
+      slug: 'ai-python',
+      description: 'Lộ trình học AI và Data Science với Python. Từ Python cơ bản đến Machine Learning, phù hợp cho người mới bắt đầu.',
+      icon: 'brain',
+      difficulty: 'beginner',
+      estimatedHours: 100,
+      isPublished: true,
+      order: 4,
+    },
+  });
+
+  const aiPath = await prisma.learningPath.findUnique({
+    where: { slug: 'ai-python' },
+  });
+
+  // AI/Python Tracks
+  const aiTracks = await Promise.all([
+    prisma.track.upsert({
+      where: { id: 'track-ai-python-basics' },
+      update: {},
+      create: {
+        id: 'track-ai-python-basics',
+        learningPathId: aiPath!.id,
+        name: 'Python Basics',
+        description: 'Nền tảng lập trình Python cho AI và Data Science',
+        order: 1,
+        isOptional: false,
+      },
+    }),
+    prisma.track.upsert({
+      where: { id: 'track-ai-data-science' },
+      update: {},
+      create: {
+        id: 'track-ai-data-science',
+        learningPathId: aiPath!.id,
+        name: 'Data Science với Python',
+        description: 'Xử lý và phân tích dữ liệu với NumPy, Pandas, Matplotlib',
+        order: 2,
+        isOptional: false,
+      },
+    }),
+    prisma.track.upsert({
+      where: { id: 'track-ai-ml-basics' },
+      update: {},
+      create: {
+        id: 'track-ai-ml-basics',
+        learningPathId: aiPath!.id,
+        name: 'Machine Learning Cơ Bản',
+        description: 'Nhập môn Machine Learning với scikit-learn',
+        order: 3,
+        isOptional: false,
+      },
+    }),
+  ]);
+
+  console.log(`✅ Created ${aiTracks.length} tracks for AI/Python path`);
+
+  // AI/Python Lessons
+  const aiLessons = await Promise.all([
+    prisma.lesson.upsert({
+      where: { slug: 'python-introduction' },
+      update: {},
+      create: {
+        slug: 'python-introduction',
+        title: 'Python Introduction',
+        summary: `
+# Python Introduction
+
+Python là ngôn ngữ lập trình phổ biến nhất cho AI và Data Science.
+
+## Bạn sẽ học được gì?
+
+- Cài đặt Python và setup môi trường
+- Cú pháp cơ bản: variables, data types
+- Control flow: if/else, loops
+- Functions và modules
+- Virtual environments (venv)
+
+## Tại sao chọn Python?
+
+- Cú pháp đơn giản, dễ đọc
+- Ecosystem AI/ML lớn nhất (TensorFlow, PyTorch, scikit-learn)
+- Cộng đồng khổng lồ và tài liệu phong phú
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'Python Official Tutorial', url: 'https://docs.python.org/3/tutorial/', type: 'documentation' },
+          { title: 'Python for Beginners - freeCodeCamp', url: 'https://www.youtube.com/watch?v=rfscVS0vtbw', type: 'video' },
+        ]),
+        estimatedMins: 60,
+        isPublished: true,
+      },
+    }),
+
+    prisma.lesson.upsert({
+      where: { slug: 'python-data-structures' },
+      update: {},
+      create: {
+        slug: 'python-data-structures',
+        title: 'Python Data Structures',
+        summary: `
+# Python Data Structures
+
+Các cấu trúc dữ liệu quan trọng trong Python.
+
+## Bạn sẽ học được gì?
+
+- Lists, Tuples, Sets
+- Dictionaries và cách sử dụng
+- List comprehensions
+- String manipulation
+- File I/O basics
+
+## Tại sao cần nắm vững Data Structures?
+
+- Nền tảng để xử lý dữ liệu trong Data Science
+- Hiểu cách lưu trữ và truy xuất dữ liệu hiệu quả
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'Python Data Structures - Docs', url: 'https://docs.python.org/3/tutorial/datastructures.html', type: 'documentation' },
+          { title: 'Python Data Structures - Real Python', url: 'https://realpython.com/python-data-structures/', type: 'tutorial' },
+        ]),
+        estimatedMins: 90,
+        isPublished: true,
+      },
+    }),
+
+    prisma.lesson.upsert({
+      where: { slug: 'numpy-pandas-basics' },
+      update: {},
+      create: {
+        slug: 'numpy-pandas-basics',
+        title: 'NumPy & Pandas Basics',
+        summary: `
+# NumPy & Pandas Basics
+
+Hai thư viện quan trọng nhất cho Data Science trong Python.
+
+## NumPy
+
+- Arrays và vectorized operations
+- Broadcasting
+- Linear algebra basics
+- Random number generation
+
+## Pandas
+
+- Series và DataFrame
+- Đọc/ghi dữ liệu (CSV, Excel, JSON)
+- Data selection, filtering, sorting
+- GroupBy và aggregation
+- Handling missing data
+
+## Tại sao NumPy + Pandas?
+
+- NumPy: tính toán số học nhanh (underlying cho mọi ML library)
+- Pandas: xử lý dữ liệu tabular (giống Excel nhưng mạnh hơn)
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'NumPy Official Tutorial', url: 'https://numpy.org/doc/stable/user/quickstart.html', type: 'documentation' },
+          { title: 'Pandas Getting Started', url: 'https://pandas.pydata.org/docs/getting_started/', type: 'documentation' },
+          { title: 'NumPy & Pandas - Kaggle', url: 'https://www.kaggle.com/learn/pandas', type: 'course' },
+        ]),
+        estimatedMins: 120,
+        isPublished: true,
+      },
+    }),
+
+    prisma.lesson.upsert({
+      where: { slug: 'data-visualization-python' },
+      update: {},
+      create: {
+        slug: 'data-visualization-python',
+        title: 'Data Visualization với Python',
+        summary: `
+# Data Visualization với Python
+
+Trực quan hóa dữ liệu để khám phá insights.
+
+## Bạn sẽ học được gì?
+
+- Matplotlib: plots cơ bản (line, bar, scatter, histogram)
+- Seaborn: statistical visualization đẹp hơn
+- Pandas built-in plotting
+- Customizing charts (colors, labels, legends)
+- Chọn đúng loại chart cho đúng loại dữ liệu
+
+## Tại sao Data Visualization quan trọng?
+
+- "A picture is worth a thousand words" — nhìn chart hiểu ngay pattern
+- EDA (Exploratory Data Analysis) là bước đầu tiên của mọi ML project
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'Matplotlib Tutorial', url: 'https://matplotlib.org/stable/tutorials/index.html', type: 'documentation' },
+          { title: 'Data Visualization - Kaggle', url: 'https://www.kaggle.com/learn/data-visualization', type: 'course' },
+        ]),
+        estimatedMins: 90,
+        isPublished: true,
+      },
+    }),
+
+    prisma.lesson.upsert({
+      where: { slug: 'ml-fundamentals-python' },
+      update: {},
+      create: {
+        slug: 'ml-fundamentals-python',
+        title: 'Machine Learning Fundamentals',
+        summary: `
+# Machine Learning Fundamentals
+
+Nhập môn Machine Learning với Python và scikit-learn.
+
+## Bạn sẽ học được gì?
+
+- ML là gì? Supervised vs Unsupervised Learning
+- Train/Test split và Cross Validation
+- Linear Regression và Logistic Regression
+- Decision Trees và Random Forests
+- Model evaluation: accuracy, precision, recall, F1
+- Overfitting và cách phòng tránh
+
+## Workflow ML cơ bản
+
+1. Thu thập và làm sạch dữ liệu
+2. EDA (Exploratory Data Analysis)
+3. Feature engineering
+4. Chọn model và training
+5. Evaluation và tuning
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'scikit-learn Tutorial', url: 'https://scikit-learn.org/stable/tutorial/', type: 'documentation' },
+          { title: 'ML Course - Andrew Ng (Coursera)', url: 'https://www.coursera.org/learn/machine-learning', type: 'course' },
+          { title: 'Intro to ML - Kaggle', url: 'https://www.kaggle.com/learn/intro-to-machine-learning', type: 'course' },
+        ]),
+        estimatedMins: 150,
+        isPublished: true,
+      },
+    }),
+  ]);
+
+  console.log(`✅ Created ${aiLessons.length} AI/Python lessons`);
+
+  const aiLessonMap = Object.fromEntries(aiLessons.map(l => [l.slug, l]));
+
+  // Link AI/Python lessons to tracks
+  await Promise.all([
+    // Python Basics Track
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-ai-python-basics', lessonId: aiLessonMap['python-introduction'].id } },
+      update: {},
+      create: { trackId: 'track-ai-python-basics', lessonId: aiLessonMap['python-introduction'].id, order: 1 },
+    }),
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-ai-python-basics', lessonId: aiLessonMap['python-data-structures'].id } },
+      update: {},
+      create: { trackId: 'track-ai-python-basics', lessonId: aiLessonMap['python-data-structures'].id, order: 2 },
+    }),
+
+    // Data Science Track
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-ai-data-science', lessonId: aiLessonMap['numpy-pandas-basics'].id } },
+      update: {},
+      create: { trackId: 'track-ai-data-science', lessonId: aiLessonMap['numpy-pandas-basics'].id, order: 1 },
+    }),
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-ai-data-science', lessonId: aiLessonMap['data-visualization-python'].id } },
+      update: {},
+      create: { trackId: 'track-ai-data-science', lessonId: aiLessonMap['data-visualization-python'].id, order: 2 },
+    }),
+
+    // Machine Learning Track
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-ai-ml-basics', lessonId: aiLessonMap['ml-fundamentals-python'].id } },
+      update: {},
+      create: { trackId: 'track-ai-ml-basics', lessonId: aiLessonMap['ml-fundamentals-python'].id, order: 1 },
+    }),
+  ]);
+
+  console.log('✅ Linked AI/Python lessons to tracks');
+
+  // ============================================
+  // BACKEND PATH — EXTRA TRACKS
+  // ============================================
+  console.log('Adding extra tracks to Backend path...');
+
+  const backendPathRecord = await prisma.learningPath.findUnique({
+    where: { slug: 'backend-nodejs' },
+  });
+
+  if (!backendPathRecord) {
+    throw new Error('Learning path backend-nodejs not found');
+  }
+
+  const backendExtraTracks = await Promise.all([
+    prisma.track.upsert({
+      where: { id: 'track-backend-auth-security' },
+      update: {},
+      create: {
+        id: 'track-backend-auth-security',
+        learningPathId: backendPathRecord.id,
+        name: 'Authentication & Security',
+        description: 'Bảo vệ API với JWT, password hashing, và security best practices.',
+        order: 4,
+        isOptional: false,
+      },
+    }),
+    prisma.track.upsert({
+      where: { id: 'track-backend-testing' },
+      update: {},
+      create: {
+        id: 'track-backend-testing',
+        learningPathId: backendPathRecord.id,
+        name: 'Backend Testing',
+        description: 'Unit, integration, và end-to-end testing cho backend services.',
+        order: 5,
+        isOptional: true,
+      },
+    }),
+    prisma.track.upsert({
+      where: { id: 'track-backend-advanced' },
+      update: {},
+      create: {
+        id: 'track-backend-advanced',
+        learningPathId: backendPathRecord.id,
+        name: 'Advanced Backend',
+        description: 'Redis cache, queue jobs, và kiến trúc microservices cơ bản.',
+        order: 6,
+        isOptional: true,
+      },
+    }),
+  ]);
+
+  console.log(`✅ Created ${backendExtraTracks.length} extra Backend tracks`);
+
+  console.log('Adding extra lessons to Backend path...');
+
+  const backendExtraLessons = await Promise.all([
+    prisma.lesson.upsert({
+      where: { slug: 'jwt-authentication' },
+      update: {},
+      create: {
+        slug: 'jwt-authentication',
+        title: 'JWT Authentication',
+        summary: `
+# JWT Authentication
+
+Xây dựng hệ thống xác thực stateless cho API bằng JSON Web Token (JWT).
+
+## Bạn sẽ học được gì?
+
+- Cấu trúc token: header, payload, signature
+- Access token và refresh token hoạt động như thế nào
+- Tích hợp JWT strategy và guards trong NestJS
+- Quản lý token expiration, rotation và logout flow
+- Thiết kế auth middleware rõ ràng cho production API
+
+## Best Practices
+
+- Giữ payload tối giản, không lưu dữ liệu nhạy cảm
+- Dùng access token ngắn hạn và refresh token an toàn
+- Luôn validate issuer, audience và thời gian hết hạn
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'JWT Introduction', url: 'https://jwt.io/introduction', type: 'documentation' },
+          { title: 'NestJS Authentication', url: 'https://docs.nestjs.com/security/authentication', type: 'documentation' },
+          { title: 'RFC 7519: JSON Web Token', url: 'https://datatracker.ietf.org/doc/html/rfc7519', type: 'documentation' },
+        ]),
+        estimatedMins: 120,
+        isPublished: true,
+      },
+    }),
+
+    prisma.lesson.upsert({
+      where: { slug: 'password-security' },
+      update: {},
+      create: {
+        slug: 'password-security',
+        title: 'Password Security',
+        summary: `
+# Password Security
+
+Bảo mật mật khẩu đúng cách để giảm rủi ro lộ tài khoản và credential stuffing.
+
+## Bạn sẽ học được gì?
+
+- Hashing vs encryption và khi nào dùng mỗi loại
+- Salt, pepper và cost factor với bcrypt
+- Kiểm tra password strength và common password rules
+- Reset password flow an toàn với token hết hạn
+- Chính sách lockout và rate limit cho login endpoint
+
+## Best Practices
+
+- Không bao giờ lưu plaintext password
+- Nâng cost factor định kỳ theo hạ tầng hiện tại
+- Dùng generic error message để tránh lộ thông tin
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'OWASP Password Storage Cheat Sheet', url: 'https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html', type: 'documentation' },
+          { title: 'bcrypt package documentation', url: 'https://www.npmjs.com/package/bcrypt', type: 'documentation' },
+          { title: 'NIST Digital Identity Guidelines', url: 'https://pages.nist.gov/800-63-3/', type: 'documentation' },
+        ]),
+        estimatedMins: 90,
+        isPublished: true,
+      },
+    }),
+
+    prisma.lesson.upsert({
+      where: { slug: 'api-security-best-practices' },
+      update: {},
+      create: {
+        slug: 'api-security-best-practices',
+        title: 'API Security Best Practices',
+        summary: `
+# API Security Best Practices
+
+Tăng mức an toàn cho REST API bằng defense-in-depth thay vì chỉ dựa vào auth.
+
+## Bạn sẽ học được gì?
+
+- OWASP API Security Top 10 và các rủi ro phổ biến
+- Input validation, sanitization và output encoding
+- Rate limiting, throttling, và abuse prevention
+- Security headers, CORS, và HTTPS enforcement
+- Audit logging và monitoring cho security events
+
+## Best Practices
+
+- Validate dữ liệu ở cả DTO và business layer
+- Ẩn stack trace và thông tin nội bộ trong lỗi trả về
+- Theo dõi bất thường bằng alerts và log correlation
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'OWASP API Security Top 10', url: 'https://owasp.org/API-Security/', type: 'documentation' },
+          { title: 'MDN HTTP Security', url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP', type: 'documentation' },
+          { title: 'NestJS Rate Limiting', url: 'https://docs.nestjs.com/security/rate-limiting', type: 'documentation' },
+        ]),
+        estimatedMins: 120,
+        isPublished: true,
+      },
+    }),
+
+    prisma.lesson.upsert({
+      where: { slug: 'jest-unit-testing' },
+      update: {},
+      create: {
+        slug: 'jest-unit-testing',
+        title: 'Jest Unit Testing',
+        summary: `
+# Jest Unit Testing
+
+Viết unit tests để kiểm tra business logic nhanh, ổn định và dễ maintain.
+
+## Bạn sẽ học được gì?
+
+- Thiết lập Jest cho service/controller trong NestJS
+- Mock dependencies bằng jest.fn và spyOn
+- Viết test cho happy path và error path
+- Assertion patterns cho async methods
+- Tổ chức test data theo fixture để tái sử dụng
+
+## Best Practices
+
+- Unit test không nên gọi DB hoặc network thật
+- Đặt tên test mô tả rõ input và expected behavior
+- Giữ test độc lập để chạy song song an toàn
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'Jest Getting Started', url: 'https://jestjs.io/docs/getting-started', type: 'documentation' },
+          { title: 'NestJS Unit Testing', url: 'https://docs.nestjs.com/fundamentals/unit-testing', type: 'documentation' },
+          { title: 'Jest Mock Functions', url: 'https://jestjs.io/docs/mock-functions', type: 'documentation' },
+        ]),
+        estimatedMins: 90,
+        isPublished: true,
+      },
+    }),
+
+    prisma.lesson.upsert({
+      where: { slug: 'integration-testing-prisma' },
+      update: {},
+      create: {
+        slug: 'integration-testing-prisma',
+        title: 'Integration Testing với Prisma',
+        summary: `
+# Integration Testing với Prisma
+
+Kiểm thử integration để xác nhận service làm việc đúng với Prisma và database.
+
+## Bạn sẽ học được gì?
+
+- Khác biệt giữa unit test và integration test
+- Setup test database và seed dữ liệu test
+- Chạy transaction-safe tests với cleanup rõ ràng
+- Test repository/service queries qua Prisma Client
+- Kiểm tra edge cases với constraint và relation data
+
+## Best Practices
+
+- Tách môi trường test DB riêng với production
+- Reset trạng thái dữ liệu sau mỗi test suite
+- Tránh mock quá nhiều trong integration tests
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'Prisma Integration Testing', url: 'https://www.prisma.io/docs/orm/prisma-client/testing/integration-testing', type: 'documentation' },
+          { title: 'Prisma Testing Overview', url: 'https://www.prisma.io/docs/orm/prisma-client/testing', type: 'documentation' },
+          { title: 'NestJS Testing Fundamentals', url: 'https://docs.nestjs.com/fundamentals/testing', type: 'documentation' },
+        ]),
+        estimatedMins: 120,
+        isPublished: true,
+      },
+    }),
+
+    prisma.lesson.upsert({
+      where: { slug: 'api-e2e-testing' },
+      update: {},
+      create: {
+        slug: 'api-e2e-testing',
+        title: 'API E2E Testing',
+        summary: `
+# API E2E Testing
+
+E2E tests đảm bảo toàn bộ request flow hoạt động đúng từ HTTP layer đến database.
+
+## Bạn sẽ học được gì?
+
+- Setup e2e test app cho NestJS với Supertest
+- Viết test cho auth flow và protected endpoints
+- Kiểm thử validation errors và status codes
+- Dùng test fixtures cho dữ liệu đầu vào nhất quán
+- Chạy e2e trong CI để chống regression sớm
+
+## Best Practices
+
+- Ưu tiên critical user journeys trước khi mở rộng suite
+- Giảm flaky bằng dữ liệu test deterministic
+- Tách smoke e2e suite và full regression suite
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'NestJS End-to-End Testing', url: 'https://docs.nestjs.com/fundamentals/testing#end-to-end-testing', type: 'documentation' },
+          { title: 'Supertest Repository', url: 'https://github.com/forwardemail/supertest', type: 'documentation' },
+          { title: 'Jest Setup and Teardown', url: 'https://jestjs.io/docs/setup-teardown', type: 'documentation' },
+        ]),
+        estimatedMins: 120,
+        isPublished: true,
+      },
+    }),
+
+    prisma.lesson.upsert({
+      where: { slug: 'caching-redis' },
+      update: {},
+      create: {
+        slug: 'caching-redis',
+        title: 'Caching với Redis',
+        summary: `
+# Caching với Redis
+
+Tăng tốc API response time bằng cache layer, giảm tải database cho truy vấn lặp lại.
+
+## Bạn sẽ học được gì?
+
+- Cache-aside pattern cho endpoint đọc dữ liệu
+- TTL, cache invalidation và versioning keys
+- Tích hợp Redis với NestJS cache manager
+- Theo dõi cache hit rate và latency metrics
+- Tránh cache stampede khi traffic tăng đột biến
+
+## Best Practices
+
+- Chỉ cache dữ liệu đọc nhiều, thay đổi ít
+- Đặt key naming convention rõ ràng theo domain
+- Luôn có fallback khi Redis tạm thời unavailable
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'Redis Documentation', url: 'https://redis.io/docs/latest/', type: 'documentation' },
+          { title: 'NestJS Caching', url: 'https://docs.nestjs.com/techniques/caching', type: 'documentation' },
+          { title: 'Redis University RU101', url: 'https://university.redis.io/courses/ru101/', type: 'course' },
+        ]),
+        estimatedMins: 90,
+        isPublished: true,
+      },
+    }),
+
+    prisma.lesson.upsert({
+      where: { slug: 'queue-jobs-bullmq' },
+      update: {},
+      create: {
+        slug: 'queue-jobs-bullmq',
+        title: 'Queue Jobs với BullMQ',
+        summary: `
+# Queue Jobs với BullMQ
+
+Xử lý tác vụ nền bất đồng bộ như gửi email, export report, và retry thất bại.
+
+## Bạn sẽ học được gì?
+
+- Khái niệm producer, worker và queue events
+- Thiết lập BullMQ với Redis trong Node.js
+- Delayed jobs, retries và backoff strategy
+- Idempotent job processing để tránh xử lý trùng
+- Giám sát queue health và failed jobs
+
+## Best Practices
+
+- Dùng job id để chống duplicate enqueue
+- Tách queue theo loại workload để scale linh hoạt
+- Ghi log đủ context để debug job failures nhanh
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'BullMQ Documentation', url: 'https://docs.bullmq.io/', type: 'documentation' },
+          { title: 'NestJS Queues', url: 'https://docs.nestjs.com/techniques/queues', type: 'documentation' },
+          { title: 'BullMQ Patterns', url: 'https://docs.bullmq.io/patterns', type: 'documentation' },
+        ]),
+        estimatedMins: 120,
+        isPublished: true,
+      },
+    }),
+
+    prisma.lesson.upsert({
+      where: { slug: 'microservices-intro' },
+      update: {},
+      create: {
+        slug: 'microservices-intro',
+        title: 'Microservices Introduction',
+        summary: `
+# Microservices Introduction
+
+Nhập môn kiến trúc microservices và khi nào nên dùng thay vì modular monolith.
+
+## Bạn sẽ học được gì?
+
+- Ưu và nhược điểm của microservices architecture
+- Service boundaries và domain decomposition cơ bản
+- Giao tiếp sync vs async giữa các services
+- Data consistency: saga, outbox và eventual consistency
+- Triển khai và observability trong hệ thống phân tán
+
+## Best Practices
+
+- Bắt đầu từ modular monolith trước khi tách service
+- Định nghĩa contract rõ ràng giữa các teams/services
+- Đầu tư logging, tracing, metrics ngay từ đầu
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'NestJS Microservices Basics', url: 'https://docs.nestjs.com/microservices/basics', type: 'documentation' },
+          { title: 'Microservices by Martin Fowler', url: 'https://martinfowler.com/articles/microservices.html', type: 'article' },
+          { title: 'Microservices.io Patterns', url: 'https://microservices.io/patterns/index.html', type: 'documentation' },
+        ]),
+        estimatedMins: 150,
+        isPublished: true,
+      },
+    }),
+  ]);
+
+  console.log(`✅ Created ${backendExtraLessons.length} extra Backend lessons`);
+
+  const backendExtraLessonMap = Object.fromEntries(backendExtraLessons.map(l => [l.slug, l]));
+
+  const backendExtraTrackLessons = await Promise.all([
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-backend-auth-security', lessonId: backendExtraLessonMap['jwt-authentication'].id } },
+      update: {},
+      create: { trackId: 'track-backend-auth-security', lessonId: backendExtraLessonMap['jwt-authentication'].id, order: 1 },
+    }),
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-backend-auth-security', lessonId: backendExtraLessonMap['password-security'].id } },
+      update: {},
+      create: { trackId: 'track-backend-auth-security', lessonId: backendExtraLessonMap['password-security'].id, order: 2 },
+    }),
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-backend-auth-security', lessonId: backendExtraLessonMap['api-security-best-practices'].id } },
+      update: {},
+      create: { trackId: 'track-backend-auth-security', lessonId: backendExtraLessonMap['api-security-best-practices'].id, order: 3 },
+    }),
+
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-backend-testing', lessonId: backendExtraLessonMap['jest-unit-testing'].id } },
+      update: {},
+      create: { trackId: 'track-backend-testing', lessonId: backendExtraLessonMap['jest-unit-testing'].id, order: 1 },
+    }),
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-backend-testing', lessonId: backendExtraLessonMap['integration-testing-prisma'].id } },
+      update: {},
+      create: { trackId: 'track-backend-testing', lessonId: backendExtraLessonMap['integration-testing-prisma'].id, order: 2 },
+    }),
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-backend-testing', lessonId: backendExtraLessonMap['api-e2e-testing'].id } },
+      update: {},
+      create: { trackId: 'track-backend-testing', lessonId: backendExtraLessonMap['api-e2e-testing'].id, order: 3 },
+    }),
+
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-backend-advanced', lessonId: backendExtraLessonMap['caching-redis'].id } },
+      update: {},
+      create: { trackId: 'track-backend-advanced', lessonId: backendExtraLessonMap['caching-redis'].id, order: 1 },
+    }),
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-backend-advanced', lessonId: backendExtraLessonMap['queue-jobs-bullmq'].id } },
+      update: {},
+      create: { trackId: 'track-backend-advanced', lessonId: backendExtraLessonMap['queue-jobs-bullmq'].id, order: 2 },
+    }),
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-backend-advanced', lessonId: backendExtraLessonMap['microservices-intro'].id } },
+      update: {},
+      create: { trackId: 'track-backend-advanced', lessonId: backendExtraLessonMap['microservices-intro'].id, order: 3 },
+    }),
+  ]);
+
+  console.log(`✅ Linked ${backendExtraTrackLessons.length} extra Backend lessons to tracks`);
+
+  // ============================================
+  // FULLSTACK PATH — EXTRA TRACKS
+  // ============================================
+  console.log('Adding extra tracks to Fullstack path...');
+
+  const fullstackPathRecord = await prisma.learningPath.findUnique({
+    where: { slug: 'fullstack-developer' },
+  });
+
+  if (!fullstackPathRecord) {
+    throw new Error('Learning path fullstack-developer not found');
+  }
+
+  const fullstackExtraTracks = await Promise.all([
+    prisma.track.upsert({
+      where: { id: 'track-fullstack-devops' },
+      update: {},
+      create: {
+        id: 'track-fullstack-devops',
+        learningPathId: fullstackPathRecord.id,
+        name: 'DevOps Basics',
+        description: 'Docker, CI/CD, và deployment nền tảng cho Fullstack Developer.',
+        order: 4,
+        isOptional: false,
+      },
+    }),
+    prisma.track.upsert({
+      where: { id: 'track-fullstack-project-real' },
+      update: {},
+      create: {
+        id: 'track-fullstack-project-real',
+        learningPathId: fullstackPathRecord.id,
+        name: 'Real-world Project',
+        description: 'Quy trình build MVP thực tế từ planning đến production checklist.',
+        order: 5,
+        isOptional: false,
+      },
+    }),
+    prisma.track.upsert({
+      where: { id: 'track-fullstack-career' },
+      update: {},
+      create: {
+        id: 'track-fullstack-career',
+        learningPathId: fullstackPathRecord.id,
+        name: 'Career & Job Hunting',
+        description: 'Chuẩn bị hồ sơ, portfolio và kỹ năng phỏng vấn cho vị trí Fullstack.',
+        order: 6,
+        isOptional: true,
+      },
+    }),
+  ]);
+
+  console.log(`✅ Created ${fullstackExtraTracks.length} extra Fullstack tracks`);
+
+  console.log('Adding extra lessons to Fullstack path...');
+
+  const fullstackExtraLessons = await Promise.all([
+    prisma.lesson.upsert({
+      where: { slug: 'docker-basics' },
+      update: {},
+      create: {
+        slug: 'docker-basics',
+        title: 'Docker Basics',
+        summary: `
+# Docker Basics
+
+Docker giúp đóng gói ứng dụng theo môi trường nhất quán từ local đến production.
+
+## Bạn sẽ học được gì?
+
+- Docker image, container và registry hoạt động như thế nào
+- Viết Dockerfile tối ưu cho Node.js app
+- Quản lý multi-service bằng Docker Compose
+- Mount volumes, networking và environment variables
+- Debug container logs và xử lý lỗi thường gặp
+
+## Best Practices
+
+- Dùng image base nhẹ và rõ version
+- Tách build stage và runtime stage để giảm size
+- Không hardcode secrets trong Dockerfile hoặc image
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'Docker Overview', url: 'https://docs.docker.com/get-started/docker-overview/', type: 'documentation' },
+          { title: 'Dockerfile Reference', url: 'https://docs.docker.com/reference/dockerfile/', type: 'documentation' },
+          { title: 'Docker Compose Documentation', url: 'https://docs.docker.com/compose/', type: 'documentation' },
+        ]),
+        estimatedMins: 90,
+        isPublished: true,
+      },
+    }),
+
+    prisma.lesson.upsert({
+      where: { slug: 'ci-cd-github-actions' },
+      update: {},
+      create: {
+        slug: 'ci-cd-github-actions',
+        title: 'CI/CD với GitHub Actions',
+        summary: `
+# CI/CD với GitHub Actions
+
+Tự động hóa build, test, và deploy giúp team release nhanh và ổn định hơn.
+
+## Bạn sẽ học được gì?
+
+- Cấu trúc workflow YAML trong GitHub Actions
+- Thiết lập jobs cho lint, test và build
+- Dùng secrets an toàn cho môi trường CI/CD
+- Tạo deploy pipeline theo branch strategy
+- Theo dõi logs, artifacts và debug failed jobs
+
+## Best Practices
+
+- Tách pipeline thành các bước nhỏ dễ debug
+- Cache dependencies để giảm thời gian chạy CI
+- Chặn merge nếu checks quan trọng chưa pass
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'GitHub Actions Documentation', url: 'https://docs.github.com/actions', type: 'documentation' },
+          { title: 'Understanding GitHub Actions', url: 'https://docs.github.com/actions/learn-github-actions/understanding-github-actions', type: 'documentation' },
+          { title: 'Building and Testing Node.js', url: 'https://docs.github.com/actions/automating-builds-and-tests/building-and-testing-nodejs', type: 'documentation' },
+        ]),
+        estimatedMins: 120,
+        isPublished: true,
+      },
+    }),
+
+    prisma.lesson.upsert({
+      where: { slug: 'cloud-deployment-vps' },
+      update: {},
+      create: {
+        slug: 'cloud-deployment-vps',
+        title: 'Cloud Deployment trên VPS',
+        summary: `
+# Cloud Deployment trên VPS
+
+Triển khai ứng dụng Fullstack lên VPS để hiểu rõ hạ tầng và vận hành thực tế.
+
+## Bạn sẽ học được gì?
+
+- Chuẩn bị Linux VPS và cấu hình SSH an toàn
+- Setup reverse proxy với Nginx cho web và API
+- Deploy app bằng Docker Compose trên server
+- Cấu hình HTTPS với Let's Encrypt
+- Monitoring cơ bản và backup strategy cho production
+
+## Best Practices
+
+- Tắt root login, dùng key-based authentication
+- Luôn có rollback plan trước mỗi lần deploy
+- Theo dõi CPU, memory, disk để phát hiện sớm bottleneck
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'Nginx Beginner Guide', url: 'https://nginx.org/en/docs/beginners_guide.html', type: 'documentation' },
+          { title: "Certbot - Let's Encrypt", url: 'https://certbot.eff.org/', type: 'documentation' },
+          { title: 'Docker Production Best Practices', url: 'https://docs.docker.com/build/building/best-practices/', type: 'documentation' },
+        ]),
+        estimatedMins: 150,
+        isPublished: true,
+      },
+    }),
+
+    prisma.lesson.upsert({
+      where: { slug: 'project-planning-architecture' },
+      update: {},
+      create: {
+        slug: 'project-planning-architecture',
+        title: 'Project Planning & Architecture',
+        summary: `
+# Project Planning & Architecture
+
+Lập kế hoạch và thiết kế kiến trúc trước khi code để giảm rework trong dự án thực tế.
+
+## Bạn sẽ học được gì?
+
+- Xác định scope, user stories và tiêu chí hoàn thành
+- Chọn kiến trúc phù hợp: monolith, modular monolith, hay microservices
+- Thiết kế API contracts và database schema ban đầu
+- Xác định milestone kỹ thuật theo MVP roadmap
+- Quản lý technical risks và dependency giữa các modules
+
+## Best Practices
+
+- Viết architecture notes ngắn gọn nhưng rõ quyết định
+- Ưu tiên thiết kế theo domain và use-case thật
+- Review scope định kỳ để tránh feature creep
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'C4 Model for Architecture', url: 'https://c4model.com/', type: 'documentation' },
+          { title: 'System Design Primer', url: 'https://github.com/donnemartin/system-design-primer', type: 'documentation' },
+          { title: 'Martin Fowler - MonolithFirst', url: 'https://martinfowler.com/bliki/MonolithFirst.html', type: 'article' },
+        ]),
+        estimatedMins: 90,
+        isPublished: true,
+      },
+    }),
+
+    prisma.lesson.upsert({
+      where: { slug: 'mvp-development' },
+      update: {},
+      create: {
+        slug: 'mvp-development',
+        title: 'MVP Development',
+        summary: `
+# MVP Development
+
+Xây MVP theo hướng ship sớm, lấy feedback thật và cải tiến theo dữ liệu người dùng.
+
+## Bạn sẽ học được gì?
+
+- Chia nhỏ features theo giá trị business cốt lõi
+- Thiết lập vertical slices cho frontend + backend
+- Quản lý backlog theo must-have vs nice-to-have
+- Release nhanh với quality gate tối thiểu
+- Thu thập feedback để quyết định iteration tiếp theo
+
+## Best Practices
+
+- Giữ kiến trúc đủ tốt, tránh over-engineering giai đoạn đầu
+- Đặt metric cụ thể để đo thành công của MVP
+- Refactor có kế hoạch sau khi validate product-market fit
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'MVP Definition (Atlassian)', url: 'https://www.atlassian.com/agile/product-management/minimum-viable-product', type: 'article' },
+          { title: 'Lean Startup Methodology', url: 'https://theleanstartup.com/principles', type: 'article' },
+          { title: 'Shape Up by Basecamp', url: 'https://basecamp.com/shapeup', type: 'documentation' },
+        ]),
+        estimatedMins: 75,
+        isPublished: true,
+      },
+    }),
+
+    prisma.lesson.upsert({
+      where: { slug: 'production-checklist' },
+      update: {},
+      create: {
+        slug: 'production-checklist',
+        title: 'Production Checklist',
+        summary: `
+# Production Checklist
+
+Trước khi go-live, bạn cần checklist kỹ thuật để đảm bảo hệ thống ổn định và an toàn.
+
+## Bạn sẽ học được gì?
+
+- Checklist cho security, performance và observability
+- Chuẩn bị env configs, secret management và backups
+- Thiết lập health checks và error tracking
+- Kế hoạch rollback và incident response cơ bản
+- Kiểm tra khả năng scale và giới hạn hệ thống
+
+## Best Practices
+
+- Dùng checklist chuẩn hóa cho mọi lần release
+- Chạy smoke tests sau deploy để xác nhận nhanh
+- Ghi lại post-mortem nếu có incident production
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'Google SRE Book', url: 'https://sre.google/sre-book/table-of-contents/', type: 'documentation' },
+          { title: 'OWASP Deployment Security', url: 'https://cheatsheetseries.owasp.org/', type: 'documentation' },
+          { title: '12-Factor App', url: 'https://12factor.net/', type: 'documentation' },
+        ]),
+        estimatedMins: 90,
+        isPublished: true,
+      },
+    }),
+
+    prisma.lesson.upsert({
+      where: { slug: 'portfolio-building' },
+      update: {},
+      create: {
+        slug: 'portfolio-building',
+        title: 'Portfolio Building',
+        summary: `
+# Portfolio Building
+
+Portfolio tốt giúp bạn chứng minh năng lực thực chiến thay vì chỉ liệt kê công nghệ đã học.
+
+## Bạn sẽ học được gì?
+
+- Chọn 2-3 dự án thể hiện breadth và depth kỹ thuật
+- Viết README rõ architecture, features và trade-offs
+- Trình bày demo, screenshots và metrics nổi bật
+- Kể câu chuyện sản phẩm theo góc nhìn người dùng
+- Tối ưu portfolio site cho recruiter scanning nhanh
+
+## Best Practices
+
+- Ưu tiên chất lượng dự án hơn số lượng dự án
+- Nêu rõ vai trò cá nhân nếu làm project theo team
+- Luôn cập nhật link demo và hướng dẫn chạy local
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'GitHub Docs - About READMEs', url: 'https://docs.github.com/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes', type: 'documentation' },
+          { title: 'freeCodeCamp Developer Portfolio Guide', url: 'https://www.freecodecamp.org/news/how-to-build-a-developer-portfolio-website/', type: 'tutorial' },
+          { title: 'The Tech Resume Inside Out', url: 'https://thetechresume.com/', type: 'article' },
+        ]),
+        estimatedMins: 60,
+        isPublished: true,
+      },
+    }),
+
+    prisma.lesson.upsert({
+      where: { slug: 'technical-interview-prep' },
+      update: {},
+      create: {
+        slug: 'technical-interview-prep',
+        title: 'Technical Interview Preparation',
+        summary: `
+# Technical Interview Preparation
+
+Chuẩn bị phỏng vấn kỹ thuật theo chiến lược để tăng tỷ lệ pass ở vòng coding và system design.
+
+## Bạn sẽ học được gì?
+
+- Ôn cấu trúc data structures và algorithms nền tảng
+- Luyện giải bài theo framework phân tích rõ ràng
+- Chuẩn bị câu hỏi backend, frontend và fullstack integration
+- Trình bày quyết định kỹ thuật trong system design interview
+- Cách self-review sau mock interview để cải thiện nhanh
+
+## Best Practices
+
+- Luyện đều đặn theo lịch ngắn nhưng liên tục
+- Ưu tiên chất lượng giải thích hơn chỉ có đáp án đúng
+- Ghi lại lỗi thường gặp và pattern để tránh lặp lại
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'NeetCode Roadmap', url: 'https://neetcode.io/roadmap', type: 'course' },
+          { title: 'System Design Primer', url: 'https://github.com/donnemartin/system-design-primer', type: 'documentation' },
+          { title: 'Cracking the Coding Interview Notes', url: 'https://www.crackingthecodinginterview.com/', type: 'documentation' },
+        ]),
+        estimatedMins: 120,
+        isPublished: true,
+      },
+    }),
+
+    prisma.lesson.upsert({
+      where: { slug: 'github-profile-optimization' },
+      update: {},
+      create: {
+        slug: 'github-profile-optimization',
+        title: 'GitHub Profile Optimization',
+        summary: `
+# GitHub Profile Optimization
+
+Tối ưu GitHub profile để nhà tuyển dụng nhìn thấy rõ năng lực code, consistency và collaboration.
+
+## Bạn sẽ học được gì?
+
+- Cấu trúc profile README chuyên nghiệp và dễ scan
+- Pin repositories theo narrative nghề nghiệp
+- Tổ chức commit history và issue/PR activity
+- Viết mô tả repo và tags giúp profile nổi bật
+- Thiết lập standards cho open-source contribution
+
+## Best Practices
+
+- Giữ profile nhất quán với CV và LinkedIn
+- Ưu tiên repos có docs, tests và cấu trúc rõ ràng
+- Cập nhật định kỳ khi hoàn thành milestone mới
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'GitHub Profile README Docs', url: 'https://docs.github.com/account-and-profile/setting-up-and-managing-your-github-profile/customizing-your-profile/managing-your-profile-readme', type: 'documentation' },
+          { title: 'GitHub Skills', url: 'https://skills.github.com/', type: 'course' },
+          { title: 'How to Build an Awesome GitHub Profile', url: 'https://www.freecodecamp.org/news/how-to-build-an-awesome-github-profile/', type: 'tutorial' },
+        ]),
+        estimatedMins: 75,
+        isPublished: true,
+      },
+    }),
+  ]);
+
+  console.log(`✅ Created ${fullstackExtraLessons.length} extra Fullstack lessons`);
+
+  const fullstackExtraLessonMap = Object.fromEntries(fullstackExtraLessons.map(l => [l.slug, l]));
+
+  const fullstackExtraTrackLessons = await Promise.all([
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-fullstack-devops', lessonId: fullstackExtraLessonMap['docker-basics'].id } },
+      update: {},
+      create: { trackId: 'track-fullstack-devops', lessonId: fullstackExtraLessonMap['docker-basics'].id, order: 1 },
+    }),
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-fullstack-devops', lessonId: fullstackExtraLessonMap['ci-cd-github-actions'].id } },
+      update: {},
+      create: { trackId: 'track-fullstack-devops', lessonId: fullstackExtraLessonMap['ci-cd-github-actions'].id, order: 2 },
+    }),
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-fullstack-devops', lessonId: fullstackExtraLessonMap['cloud-deployment-vps'].id } },
+      update: {},
+      create: { trackId: 'track-fullstack-devops', lessonId: fullstackExtraLessonMap['cloud-deployment-vps'].id, order: 3 },
+    }),
+
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-fullstack-project-real', lessonId: fullstackExtraLessonMap['project-planning-architecture'].id } },
+      update: {},
+      create: { trackId: 'track-fullstack-project-real', lessonId: fullstackExtraLessonMap['project-planning-architecture'].id, order: 1 },
+    }),
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-fullstack-project-real', lessonId: fullstackExtraLessonMap['mvp-development'].id } },
+      update: {},
+      create: { trackId: 'track-fullstack-project-real', lessonId: fullstackExtraLessonMap['mvp-development'].id, order: 2 },
+    }),
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-fullstack-project-real', lessonId: fullstackExtraLessonMap['production-checklist'].id } },
+      update: {},
+      create: { trackId: 'track-fullstack-project-real', lessonId: fullstackExtraLessonMap['production-checklist'].id, order: 3 },
+    }),
+
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-fullstack-career', lessonId: fullstackExtraLessonMap['portfolio-building'].id } },
+      update: {},
+      create: { trackId: 'track-fullstack-career', lessonId: fullstackExtraLessonMap['portfolio-building'].id, order: 1 },
+    }),
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-fullstack-career', lessonId: fullstackExtraLessonMap['technical-interview-prep'].id } },
+      update: {},
+      create: { trackId: 'track-fullstack-career', lessonId: fullstackExtraLessonMap['technical-interview-prep'].id, order: 2 },
+    }),
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-fullstack-career', lessonId: fullstackExtraLessonMap['github-profile-optimization'].id } },
+      update: {},
+      create: { trackId: 'track-fullstack-career', lessonId: fullstackExtraLessonMap['github-profile-optimization'].id, order: 3 },
+    }),
+  ]);
+
+  console.log(`✅ Linked ${fullstackExtraTrackLessons.length} extra Fullstack lessons to tracks`);
+
+  // ============================================
+  // FRONTEND PATH — EXTRA TRACKS
+  // ============================================
+  console.log('Adding extra tracks to Frontend path...');
+
+  const frontendPathRecord = await prisma.learningPath.findUnique({
+    where: { slug: 'frontend-reactjs' },
+  });
+
+  if (!frontendPathRecord) {
+    throw new Error('Learning path frontend-reactjs not found');
+  }
+
+  const frontendExtraTracks = await Promise.all([
+    prisma.track.upsert({
+      where: { id: 'track-typescript-react' },
+      update: {},
+      create: {
+        id: 'track-typescript-react',
+        learningPathId: frontendPathRecord.id,
+        name: 'TypeScript với React',
+        description: 'Tăng type safety cho React app với TypeScript.',
+        order: 6,
+        isOptional: false,
+      },
+    }),
+    prisma.track.upsert({
+      where: { id: 'track-react-testing' },
+      update: {},
+      create: {
+        id: 'track-react-testing',
+        learningPathId: frontendPathRecord.id,
+        name: 'Testing React Apps',
+        description: 'Viết unit và integration tests cho React components.',
+        order: 7,
+        isOptional: true,
+      },
+    }),
+    prisma.track.upsert({
+      where: { id: 'track-react-performance' },
+      update: {},
+      create: {
+        id: 'track-react-performance',
+        learningPathId: frontendPathRecord.id,
+        name: 'Performance Optimization',
+        description: 'Tối ưu hiệu năng React app: memo, lazy loading, bundle size.',
+        order: 8,
+        isOptional: true,
+      },
+    }),
+  ]);
+
+  console.log(`✅ Created ${frontendExtraTracks.length} extra Frontend tracks`);
+
+  console.log('Adding extra lessons to Frontend path...');
+
+  const frontendExtraLessons = await Promise.all([
+    prisma.lesson.upsert({
+      where: { slug: 'typescript-basics' },
+      update: {},
+      create: {
+        slug: 'typescript-basics',
+        title: 'TypeScript Basics',
+        summary: `
+# TypeScript Basics
+
+TypeScript mở rộng JavaScript với static typing để phát hiện lỗi sớm và refactor an toàn hơn.
+
+## Bạn sẽ học được gì?
+
+- Khai báo kiểu dữ liệu cơ bản và type inference
+- Union types, literal types và type narrowing
+- Interface, type alias và khi nào nên dùng mỗi loại
+- Thiết lập tsconfig cho dự án React
+- Đọc lỗi compiler để sửa đúng root cause
+
+## Best Practices
+
+- Bật strict mode ngay từ đầu dự án
+- Hạn chế any, ưu tiên unknown khi dữ liệu chưa rõ
+- Đặt tên type và interface theo domain để dễ maintain
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'TypeScript Handbook - Everyday Types', url: 'https://www.typescriptlang.org/docs/handbook/2/everyday-types.html', type: 'documentation' },
+          { title: 'TypeScript Handbook - Intro', url: 'https://www.typescriptlang.org/docs/handbook/intro.html', type: 'documentation' },
+          { title: 'TypeScript Course for Beginners - freeCodeCamp', url: 'https://www.youtube.com/watch?v=30LWjhZzg50', type: 'video' },
+        ]),
+        estimatedMins: 90,
+        isPublished: true,
+      },
+    }),
+
+    prisma.lesson.upsert({
+      where: { slug: 'typescript-react-components' },
+      update: {},
+      create: {
+        slug: 'typescript-react-components',
+        title: 'TypeScript React Components',
+        summary: `
+# TypeScript với React Components
+
+Áp dụng TypeScript vào React để component có contract rõ ràng và giảm runtime bugs.
+
+## Bạn sẽ học được gì?
+
+- Typing props, children và default values
+- Typing events của form, input, click chính xác
+- Typing hooks phổ biến như useState, useRef, useReducer
+- Generic component để tái sử dụng tốt hơn
+- Tổ chức file types cho từng feature module
+
+## Best Practices
+
+- Dùng interface cho props public của component
+- Tránh React.FC khi không cần implicit children
+- Tách shared types vào file riêng để tránh lặp code
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'React TypeScript Cheatsheets', url: 'https://react-typescript-cheatsheet.netlify.app/', type: 'documentation' },
+          { title: 'TypeScript Handbook - JSX', url: 'https://www.typescriptlang.org/docs/handbook/jsx.html', type: 'documentation' },
+          { title: 'React Docs - Using TypeScript', url: 'https://react.dev/learn/typescript', type: 'documentation' },
+        ]),
+        estimatedMins: 120,
+        isPublished: true,
+      },
+    }),
+
+    prisma.lesson.upsert({
+      where: { slug: 'typescript-advanced-patterns' },
+      update: {},
+      create: {
+        slug: 'typescript-advanced-patterns',
+        title: 'TypeScript Advanced Patterns',
+        summary: `
+# TypeScript Advanced Patterns
+
+Nâng cao khả năng modeling dữ liệu và business rules với các pattern type mạnh mẽ.
+
+## Bạn sẽ học được gì?
+
+- Generic constraints và reusable type helpers
+- Utility types như Partial, Pick, Omit, Record
+- Discriminated unions để quản lý UI state
+- Mapped types và conditional types cơ bản
+- Exhaustive checking để tránh thiếu case logic
+
+## Best Practices
+
+- Thiết kế types theo domain thay vì theo UI tạm thời
+- Ưu tiên composition thay vì tạo type quá phức tạp
+- Viết helper types nhỏ, rõ nghĩa và có thể tái sử dụng
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'TypeScript Handbook - Generics', url: 'https://www.typescriptlang.org/docs/handbook/2/generics.html', type: 'documentation' },
+          { title: 'TypeScript Handbook - Utility Types', url: 'https://www.typescriptlang.org/docs/handbook/utility-types.html', type: 'documentation' },
+          { title: 'Total TypeScript Concepts', url: 'https://www.totaltypescript.com/concepts', type: 'tutorial' },
+        ]),
+        estimatedMins: 120,
+        isPublished: true,
+      },
+    }),
+
+    prisma.lesson.upsert({
+      where: { slug: 'jest-basics' },
+      update: {},
+      create: {
+        slug: 'jest-basics',
+        title: 'Jest Basics',
+        summary: `
+# Jest Basics
+
+Jest là test runner phổ biến cho JavaScript và TypeScript, phù hợp cho unit test và integration test nhỏ.
+
+## Bạn sẽ học được gì?
+
+- Cấu trúc một test case với describe, it, expect
+- Matchers quan trọng để assert dữ liệu đúng
+- Setup và teardown bằng beforeEach, afterEach
+- Mock functions và mock modules hiệu quả
+- Chạy watch mode và đọc test report
+
+## Best Practices
+
+- Mỗi test chỉ nên kiểm tra một hành vi chính
+- Đặt tên test mô tả rõ ngữ cảnh và kỳ vọng
+- Tránh phụ thuộc thứ tự chạy giữa các test cases
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'Jest Documentation - Getting Started', url: 'https://jestjs.io/docs/getting-started', type: 'documentation' },
+          { title: 'Jest Documentation - Mock Functions', url: 'https://jestjs.io/docs/mock-functions', type: 'documentation' },
+          { title: 'Jest Crash Course - Traversy Media', url: 'https://www.youtube.com/watch?v=7r4xVDI2vho', type: 'video' },
+        ]),
+        estimatedMins: 90,
+        isPublished: true,
+      },
+    }),
+
+    prisma.lesson.upsert({
+      where: { slug: 'react-testing-library' },
+      update: {},
+      create: {
+        slug: 'react-testing-library',
+        title: 'React Testing Library',
+        summary: `
+# React Testing Library
+
+Testing Library giúp test theo góc nhìn người dùng thay vì test implementation details.
+
+## Bạn sẽ học được gì?
+
+- Render component và query theo role, text, label
+- Mô phỏng user interaction bằng user-event
+- Test async UI với findBy và waitFor
+- Kiểm tra loading, error, success states
+- Viết test cho form validation và accessibility
+
+## Best Practices
+
+- Ưu tiên query theo getByRole để gần hành vi thực tế
+- Không test state nội bộ nếu user không nhìn thấy
+- Viết test theo hành vi trước, implementation sau
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'React Testing Library - Intro', url: 'https://testing-library.com/docs/react-testing-library/intro/', type: 'documentation' },
+          { title: 'Testing Library - user-event Intro', url: 'https://testing-library.com/docs/user-event/intro/', type: 'documentation' },
+          { title: 'Common Mistakes with React Testing Library', url: 'https://kentcdodds.com/blog/common-mistakes-with-react-testing-library', type: 'tutorial' },
+        ]),
+        estimatedMins: 120,
+        isPublished: true,
+      },
+    }),
+
+    prisma.lesson.upsert({
+      where: { slug: 'e2e-testing-playwright' },
+      update: {},
+      create: {
+        slug: 'e2e-testing-playwright',
+        title: 'E2E Testing với Playwright',
+        summary: `
+# E2E Testing với Playwright
+
+Playwright cho phép test end-to-end luồng người dùng trên trình duyệt thật với độ ổn định cao.
+
+## Bạn sẽ học được gì?
+
+- Cấu hình Playwright và chạy test trên nhiều browsers
+- Viết kịch bản login, navigation, form submission
+- Sử dụng locators, assertions và auto-waiting
+- Quản lý test data và trạng thái môi trường
+- Debug test bằng trace viewer, screenshot, video
+
+## Best Practices
+
+- Giữ test độc lập, không chia sẻ state giữa các case
+- Ưu tiên stable selectors cho locators
+- Chạy smoke suite nhanh trong CI trước full suite
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'Playwright Documentation - Intro', url: 'https://playwright.dev/docs/intro', type: 'documentation' },
+          { title: 'Playwright Documentation - Writing Tests', url: 'https://playwright.dev/docs/writing-tests', type: 'documentation' },
+          { title: 'Playwright Documentation - Best Practices', url: 'https://playwright.dev/docs/best-practices', type: 'documentation' },
+        ]),
+        estimatedMins: 150,
+        isPublished: true,
+      },
+    }),
+
+    prisma.lesson.upsert({
+      where: { slug: 'react-memo-usecallback' },
+      update: {},
+      create: {
+        slug: 'react-memo-usecallback',
+        title: 'React memo và useCallback',
+        summary: `
+# React memo, useMemo, useCallback
+
+Tối ưu rendering bằng memoization để giảm re-render không cần thiết trong React app.
+
+## Bạn sẽ học được gì?
+
+- Cách React.memo hoạt động với props comparison
+- Khi nào dùng useMemo cho giá trị tính toán nặng
+- Khi nào dùng useCallback cho function props
+- Dùng React DevTools Profiler để tìm bottlenecks
+- Trade-off giữa tối ưu sớm và code complexity
+
+## Best Practices
+
+- Chỉ memoize khi có số liệu performance rõ ràng
+- Tránh dependency array sai gây stale values
+- Ưu tiên kiến trúc state hợp lý trước micro-optimizations
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'React Docs - memo', url: 'https://react.dev/reference/react/memo', type: 'documentation' },
+          { title: 'React Docs - useMemo', url: 'https://react.dev/reference/react/useMemo', type: 'documentation' },
+          { title: 'React Docs - useCallback', url: 'https://react.dev/reference/react/useCallback', type: 'documentation' },
+        ]),
+        estimatedMins: 90,
+        isPublished: true,
+      },
+    }),
+
+    prisma.lesson.upsert({
+      where: { slug: 'code-splitting-lazy' },
+      update: {},
+      create: {
+        slug: 'code-splitting-lazy',
+        title: 'Code Splitting và Lazy Loading',
+        summary: `
+# Code Splitting và Lazy Loading
+
+Giảm bundle size ban đầu bằng cách tách code theo route và tải khi cần.
+
+## Bạn sẽ học được gì?
+
+- Dynamic import và lợi ích của code splitting
+- Sử dụng React.lazy kết hợp Suspense
+- Tổ chức split points theo route và feature
+- Thiết kế loading fallback UX mượt mà
+- Đo hiệu quả sau tối ưu bằng Lighthouse
+
+## Best Practices
+
+- Split theo route trước, rồi mới tối ưu sâu theo component
+- Đặt fallback rõ ràng để tránh blank screen
+- Theo dõi chunk size để tránh tạo quá nhiều requests nhỏ
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'React Docs - lazy', url: 'https://react.dev/reference/react/lazy', type: 'documentation' },
+          { title: 'React Docs - Suspense', url: 'https://react.dev/reference/react/Suspense', type: 'documentation' },
+          { title: 'React Legacy Docs - Code Splitting', url: 'https://legacy.reactjs.org/docs/code-splitting.html', type: 'documentation' },
+        ]),
+        estimatedMins: 75,
+        isPublished: true,
+      },
+    }),
+
+    prisma.lesson.upsert({
+      where: { slug: 'web-vitals-optimization' },
+      update: {},
+      create: {
+        slug: 'web-vitals-optimization',
+        title: 'Web Vitals Optimization',
+        summary: `
+# Web Vitals Optimization
+
+Tối ưu trải nghiệm thực tế bằng cách theo dõi và cải thiện Core Web Vitals.
+
+## Bạn sẽ học được gì?
+
+- Ý nghĩa các chỉ số LCP, CLS, INP
+- Dùng Lighthouse và Performance panel để đo
+- Tối ưu ảnh, font và critical rendering path
+- Giảm JS blocking bằng caching và code splitting
+- Thiết lập theo dõi Web Vitals trong production
+
+## Best Practices
+
+- Đặt performance budget ngay từ đầu sprint
+- Ưu tiên sửa vấn đề ảnh hưởng trực tiếp người dùng
+- Đo lại sau mỗi thay đổi để xác nhận cải thiện thật
+        `.trim(),
+        externalLinks: JSON.stringify([
+          { title: 'web.dev - Core Web Vitals', url: 'https://web.dev/vitals/', type: 'documentation' },
+          { title: 'web.dev - Optimize LCP', url: 'https://web.dev/articles/lcp', type: 'documentation' },
+          { title: 'Chrome Docs - Lighthouse Performance', url: 'https://developer.chrome.com/docs/lighthouse/performance/', type: 'documentation' },
+        ]),
+        estimatedMins: 120,
+        isPublished: true,
+      },
+    }),
+  ]);
+
+  console.log(`✅ Created ${frontendExtraLessons.length} extra Frontend lessons`);
+
+  const frontendExtraLessonMap = Object.fromEntries(frontendExtraLessons.map(l => [l.slug, l]));
+
+  const frontendExtraTrackLessons = await Promise.all([
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-typescript-react', lessonId: frontendExtraLessonMap['typescript-basics'].id } },
+      update: {},
+      create: { trackId: 'track-typescript-react', lessonId: frontendExtraLessonMap['typescript-basics'].id, order: 1 },
+    }),
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-typescript-react', lessonId: frontendExtraLessonMap['typescript-react-components'].id } },
+      update: {},
+      create: { trackId: 'track-typescript-react', lessonId: frontendExtraLessonMap['typescript-react-components'].id, order: 2 },
+    }),
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-typescript-react', lessonId: frontendExtraLessonMap['typescript-advanced-patterns'].id } },
+      update: {},
+      create: { trackId: 'track-typescript-react', lessonId: frontendExtraLessonMap['typescript-advanced-patterns'].id, order: 3 },
+    }),
+
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-react-testing', lessonId: frontendExtraLessonMap['jest-basics'].id } },
+      update: {},
+      create: { trackId: 'track-react-testing', lessonId: frontendExtraLessonMap['jest-basics'].id, order: 1 },
+    }),
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-react-testing', lessonId: frontendExtraLessonMap['react-testing-library'].id } },
+      update: {},
+      create: { trackId: 'track-react-testing', lessonId: frontendExtraLessonMap['react-testing-library'].id, order: 2 },
+    }),
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-react-testing', lessonId: frontendExtraLessonMap['e2e-testing-playwright'].id } },
+      update: {},
+      create: { trackId: 'track-react-testing', lessonId: frontendExtraLessonMap['e2e-testing-playwright'].id, order: 3 },
+    }),
+
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-react-performance', lessonId: frontendExtraLessonMap['react-memo-usecallback'].id } },
+      update: {},
+      create: { trackId: 'track-react-performance', lessonId: frontendExtraLessonMap['react-memo-usecallback'].id, order: 1 },
+    }),
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-react-performance', lessonId: frontendExtraLessonMap['code-splitting-lazy'].id } },
+      update: {},
+      create: { trackId: 'track-react-performance', lessonId: frontendExtraLessonMap['code-splitting-lazy'].id, order: 2 },
+    }),
+    prisma.trackLesson.upsert({
+      where: { trackId_lessonId: { trackId: 'track-react-performance', lessonId: frontendExtraLessonMap['web-vitals-optimization'].id } },
+      update: {},
+      create: { trackId: 'track-react-performance', lessonId: frontendExtraLessonMap['web-vitals-optimization'].id, order: 3 },
+    }),
+  ]);
+
+  console.log(`✅ Linked ${frontendExtraTrackLessons.length} extra Frontend lessons to tracks`);
+
+  // ============================================
   // DONE
   // ============================================
   console.log('\n🎉 Database seeding completed successfully!');
   console.log('\nCreated:');
   console.log(`  - 2 users (admin + test)`);
-  console.log(`  - 3 learning paths (Frontend ReactJS, Backend NodeJS, Fullstack)`);
-  console.log(`  - ${frontendTracks.length + backendTracks.length + fullstackTracks.length} tracks total`);
-  console.log(`  - ${lessons.length + backendLessons.length} lessons total`);
+  console.log(`  - 4 learning paths (Frontend ReactJS, Backend NodeJS, Fullstack, AI/Python)`);
+  console.log(`  - ${frontendTracks.length + frontendExtraTracks.length + backendTracks.length + backendExtraTracks.length + fullstackTracks.length + fullstackExtraTracks.length + aiTracks.length} tracks total`);
+  console.log(`  - ${lessons.length + frontendExtraLessons.length + backendLessons.length + backendExtraLessons.length + fullstackExtraLessons.length + aiLessons.length} lessons total`);
   console.log(`  - 3 quizzes with 15 questions total`);
   console.log(`  - Sample progress data for test user`);
   console.log('\nTest accounts:');
