@@ -15,6 +15,7 @@ import { LessonsModule } from './modules/lessons/index.js';
 import { ProgressModule } from './modules/progress/index.js';
 import { SubscriptionsModule } from './modules/subscriptions/index.js';
 import { DashboardModule } from './modules/dashboard/index.js';
+import { AdminModule } from './modules/admin/index.js';
 
 @Module({
   imports: [
@@ -72,6 +73,9 @@ import { DashboardModule } from './modules/dashboard/index.js';
 
     // DashboardModule: aggregate overview data (user, paths, activity, AI quota)
     DashboardModule,
+
+    // AdminModule: admin users management and analytics
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [

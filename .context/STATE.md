@@ -6,12 +6,12 @@
 
 ## Current Focus
 
-- **Phase**: Phase 1 - Foundation
-- **Active Branch**: `fix/oauth-login-bug` (from main)
-- **Last Completed Branch**: `fix/auth-register-login` ✅
-- **Phase 1 Progress**: 6/8 done
-- **Next Branch**: `feat/payment-be`
-- **Last Main Commit**: Merge branch 'fix/auth-register-login' (b2d9486)
+- **Phase**: Phase 1 - Foundation (gần xong, còn 08-admin-be)
+- **Active Branch**: `feat/admin-be`
+- **Last Completed Branch**: `feat/seed-explore-aichat` ✅
+- **Phase 1 Progress**: 7/8 done
+- **Next Branch**: `feat/admin-be` (đang làm)
+- **Last Main Commit**: 548316e Merge branch 'feat/seed-explore-aichat'
 
 ## Branch Dispatch
 
@@ -24,10 +24,11 @@
 | 05 | `feat/progress-be` | MERGED ✅ | Merged to main (commit fb0b4a8) |
 | 06 | `feat/ai-chat-be` | MERGED ✅ | 4 endpoints, 36 new tests (172 total) |
 | -- | `fix/auth-register-login` | MERGED ✅ | Register/login with password, forgot/reset, email verify, frontend AuthPage |
-| -- | `fix/oauth-login-bug` | IN PROGRESS 🔧 | Google OAuth ✅ fixed, GitHub OAuth 🔴 pending |
-| 07 | `feat/payment-be` | NOT STARTED | - |
-| 08 | `feat/admin-be` | NOT STARTED | - |
-| 09-17 | See ROADMAP.md | NOT STARTED | - |
+| -- | `fix/oauth-login-bug` | MERGED ✅ | Google OAuth fixed, GitHub pending |
+| -- | `fix/onboarding-dashboard` | MERGED ✅ | Dashboard API + onboarding blank fix |
+| 07 | `feat/payment-be` | MERGED ✅ | MoMo + VNPay + subscriptions |
+| -- | `feat/seed-explore-aichat` | MERGED ✅ | 4 paths, 23 tracks, 58 lessons, /explore /ai-chat /lesson pages |
+| 08 | `feat/admin-be` | IN PROGRESS 🔧 | - |
 
 ## Environment
 
@@ -40,12 +41,13 @@
 
 ## Blockers / Notes
 
-- **GitHub OAuth**: handleRequest() bị Passport 0.7 gọi 2 lần (giống Google). Cache fix đã apply nhưng có thể GitHub strategy cần debug thêm. Google OAuth đã fix xong.
-- **express-session**: Đã thêm vào main.ts cho OAuth state verification
-- **AI tests**: ai.service.spec.ts đã sync model names (ag/gemini-3-flash, etc.)
+- **GitHub OAuth**: pending (de-prioritized, fix later)
+- **AI service**: fixed stream:false + OpenAI response format
 
 ## Last Session
 
 - **Date**: 2026-03-16
-- **Did**: fix/oauth-login-bug: Fixed Google OAuth "No user returned" (Passport 0.7 calls handleRequest 2x, cached user from 1st call). Added express-session for OAuth state. Synced AI test model names. Google OAuth ✅ working. GitHub OAuth still pending.
-- **Next**: Debug GitHub OAuth, then commit+merge fix/oauth-login-bug. Start `feat/payment-be` or `feat/admin-be`.
+- **Did**: Merged feat/seed-explore-aichat (seed 4 paths/23 tracks/58 lessons,
+  created /explore /ai-chat /lesson/:slug pages, fixed AI Chat field mismatch +
+  AI service streaming bug, added "Khám phá thêm" link to Dashboard)
+- **Next**: feat/admin-be — Admin CRUD + Users + Analytics + AI bulk content

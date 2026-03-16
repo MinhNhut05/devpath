@@ -8,8 +8,8 @@
 
 | Phase | Name | Branches | Status | Progress |
 |-------|------|----------|--------|----------|
-| 1 | Backend Foundation | 01-08 | In Progress | 5% |
-| 2 | Frontend | 09-15 | Not Started | 0% |
+| 1 | Backend Foundation | 01-08 | Nearly Done | 88% (7/8) |
+| 2 | Frontend | 09-15 | Partially Done | 40% (09-12 done, 13 partial) |
 | 3 | Polish & Deploy | 16-17 | Not Started | 0% |
 
 ---
@@ -18,24 +18,24 @@
 
 | # | Branch | Scope | Status |
 |---|--------|-------|--------|
-| 01 | `feat/auth-be` | OTP + OAuth + JWT + Guards | In Progress |
-| 02 | `feat/onboarding-be` | Onboarding flow + AI recommendation | Not Started |
-| 03 | `feat/learning-paths-be` | Learning Paths + Tracks + Lessons | Not Started |
-| 04 | `feat/quiz-be` | Quiz + Essay grading + Code challenge | Not Started |
-| 05 | `feat/progress-be` | User progress + sessions + activity | Not Started |
-| 06 | `feat/ai-chat-be` | AI chatbot + context injection + quota | Not Started |
-| 07 | `feat/payment-be` | MoMo + VNPay + subscription + tiers | Not Started |
-| 08 | `feat/admin-be` | Admin CRUD + analytics + bulk generate | Not Started |
+| 01 | `feat/auth-be` | OTP + OAuth + JWT + Guards | Done ✅ |
+| 02 | `feat/onboarding-be` | Onboarding flow + AI recommendation | Done ✅ |
+| 03 | `feat/learning-paths-be` | Learning Paths + Tracks + Lessons | Done ✅ |
+| 04 | `feat/quiz-be` | Quiz + Essay grading + Code challenge | Done ✅ |
+| 05 | `feat/progress-be` | User progress + sessions + activity | Done ✅ |
+| 06 | `feat/ai-chat-be` | AI chatbot + context injection + quota | Done ✅ |
+| 07 | `feat/payment-be` | MoMo + VNPay + subscription + tiers | Done ✅ |
+| 08 | `feat/admin-be` | Admin CRUD + analytics + bulk generate | In Progress 🔧 |
 
 ## Phase 2: Frontend (Branches 09-15)
 
 | # | Branch | Scope | Status |
 |---|--------|-------|--------|
-| 09 | `feat/init-fe` | Vite + React + Tailwind + Shadcn + routing | Not Started |
-| 10 | `feat/auth-fe` | Login page + auth store + token handling | Not Started |
-| 11 | `feat/onboarding-fe` | Onboarding UI flow | Not Started |
-| 12 | `feat/dashboard-fe` | Dashboard + progress + activity graph | Not Started |
-| 13 | `feat/learning-fe` | Lesson page + AI chat + quiz UI | Not Started |
+| 09 | `feat/init-fe` | Vite + React + Tailwind + Shadcn + routing | Done ✅ |
+| 10 | `feat/auth-fe` | Login page + auth store + token handling | Done ✅ |
+| 11 | `feat/onboarding-fe` | Onboarding UI flow | Done ✅ |
+| 12 | `feat/dashboard-fe` | Dashboard + progress + activity graph | Done ✅ |
+| 13 | `feat/learning-fe` | Lesson page + AI chat + quiz UI | Partial ⚠️ |
 | 14 | `feat/payment-fe` | Plans page + payment flow | Not Started |
 | 15 | `feat/admin-fe` | Admin panel UI | Not Started |
 
@@ -67,3 +67,6 @@
 - [x] Docker dev environment setup (2026-01-27)
 - [x] Custom Claude Skills created (2026-01-28)
 - [x] Context restructuring to .context/ (2026-03-02)
+- [x] Auth working (OTP + OAuth + JWT) (2026-03-xx)
+- [x] Core backend modules 1-7 complete (2026-03-16)
+- [x] Frontend MVP (login + onboarding + dashboard + learning pages) (2026-03-16)

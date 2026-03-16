@@ -1,0 +1,15 @@
+export { AdminModule } from './admin.module.js';
+export { AdminUsersController } from './admin-users.controller.js';
+export { AdminUsersService } from './admin-users.service.js';
+export { AdminAnalyticsController } from './admin-analytics.controller.js';
+export { AdminAnalyticsService } from './admin-analytics.service.js';
+export { AdminLearningPathsController } from './admin-learning-paths.controller.js';
+export { AdminLearningPathsService } from './admin-learning-paths.service.js';
+export { AdminTracksController } from './admin-tracks.controller.js';
+export { AdminTracksService } from './admin-tracks.service.js';
+export { AdminLessonsController } from './admin-lessons.controller.js';
+export { AdminLessonsService } from './admin-lessons.service.js';
+export { AdminQuizzesController } from './admin-quizzes.controller.js';
+export { AdminQuizzesService } from './admin-quizzes.service.js';
+export { AdminContentController } from './admin-content.controller.js';
+export { AdminContentService } from './admin-content.service.js';
