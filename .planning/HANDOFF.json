@@ -1,0 +1,107 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-03-22T15:51:01.762Z",
+  "phase": "milestone-setup",
+  "phase_name": "DevPath v1.1 milestone setup",
+  "phase_dir": ".planning",
+  "plan": 0,
+  "task": 3,
+  "total_tasks": 4,
+  "status": "paused",
+  "completed_tasks": [
+    {
+      "id": 1,
+      "name": "Load milestone context and resolve project mismatch",
+      "status": "done",
+      "commit": null
+    },
+    {
+      "id": 2,
+      "name": "Clarify milestone goals with choice-submit questioning",
+      "status": "done",
+      "commit": null
+    },
+    {
+      "id": 3,
+      "name": "Update planning artifacts for DevPath v1.1",
+      "status": "done",
+      "commit": null
+    },
+    {
+      "id": 4,
+      "name": "Draft milestone requirements",
+      "status": "in_progress",
+      "progress": "PROJECT.md, STATE.md, MILESTONES.md, REQUIREMENTS.md draft, FEATURES.md, ARCHITECTURE.md, and PITFALLS.md were updated or created for DevPath v1.1. STACK.md remains stale SOHA content and roadmap has not been created yet."
+    }
+  ],
+  "remaining_tasks": [
+    {
+      "id": 5,
+      "name": "Fix STACK.md research to DevPath scope",
+      "status": "not_started"
+    },
+    {
+      "id": 6,
+      "name": "Review and finalize REQUIREMENTS.md",
+      "status": "not_started"
+    },
+    {
+      "id": 7,
+      "name": "Create ROADMAP.md for milestone v1.1",
+      "status": "not_started"
+    }
+  ],
+  "blockers": [
+    {
+      "description": "No active .planning/phases/ directory exists yet because work is paused before roadmap creation.",
+      "type": "technical",
+      "workaround": "Resume from milestone setup state, finalize requirements, then create roadmap which will generate phase structure."
+    },
+    {
+      "description": "STACK.md still contains stale SOHA research and should not be trusted for DevPath milestone decisions.",
+      "type": "technical",
+      "workaround": "Overwrite STACK.md with DevPath v1.1 stack research before using research set as complete."
+    }
+  ],
+  "human_actions_pending": [],
+  "decisions": [
+    {
+      "decision": "Use DevPath as the source of truth and replace stale SOHA planning content.",
+      "rationale": "The repo and user requirements clearly refer to DevPath, while .planning had drifted to another project.",
+      "phase": "milestone-setup"
+    },
+    {
+      "decision": "Milestone version is v1.1 with a stability-first strategy.",
+      "rationale": "The user wants post-MVP stabilization plus bounded personalization, not a major product reset.",
+      "phase": "milestone-setup"
+    },
+    {
+      "decision": "Continue phase numbering instead of reset.",
+      "rationale": "Reset was unsafe because there was existing .planning/phases state without an archive path.",
+      "phase": "milestone-setup"
+    },
+    {
+      "decision": "Use choice-submit questioning during scoping.",
+      "rationale": "The user explicitly requested this interaction style.",
+      "phase": "milestone-setup"
+    },
+    {
+      "decision": "Use a soft main-path model with exactly 5 onboarding rounds.",
+      "rationale": "The user wants AI-guided personalization without hard-locking learners out of other content.",
+      "phase": "milestone-setup"
+    }
+  ],
+  "uncommitted_files": [
+    ".planning/PROJECT.md",
+    ".planning/REQUIREMENTS.md",
+    ".planning/MILESTONES.md",
+    ".planning/STATE.md",
+    ".planning/ROADMAP.md",
+    ".planning/research/ARCHITECTURE.md",
+    ".planning/research/FEATURES.md",
+    ".planning/research/PITFALLS.md",
+    ".planning/research/STACK.md"
+  ],
+  "next_action": "Start by fixing .planning/research/STACK.md to match DevPath v1.1, then review REQUIREMENTS.md with the user, and only after approval create ROADMAP.md.",
+  "context_notes": "We are paused before roadmap creation. The most important thing is not to trust stale SOHA planning artifacts. Requirements draft exists and is close, but stack research still needs correction before the research set is fully coherent. The user prefers choice-submit questions and already confirmed milestone direction: stability first, adaptive onboarding, canonical learner profile, soft main path, basic notifications/leaderboard, real payment handling, and critical Frontend-path content gaps."
+}
