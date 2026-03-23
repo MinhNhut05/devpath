@@ -104,6 +104,16 @@ export const vi = {
     levelCurrent: 'Level hiện tại',
     xpRemaining: 'XP nữa',
     remaining: 'Còn',
+    activityCompletedReactState: 'Hoàn thành "React State Management"',
+    activityScoredJavascriptQuiz: 'Đạt 90% quiz "JavaScript Basics"',
+    activitySevenDayStreak: 'Streak 7 ngày liên tiếp!',
+    activityStartedReactHooks: 'Bắt đầu "React Hooks Deep Dive"',
+    timeTwoHoursAgo: '2 giờ trước',
+    timeFiveHoursAgo: '5 giờ trước',
+    timeOneDayAgo: '1 ngày trước',
+    badgeFirstStepDesc: 'Hoàn thành bài học đầu tiên',
+    badgeSevenDayStreakDesc: 'Streak 7 ngày',
+    badgeQuizMasterDesc: 'Đạt 100% quiz',
   },
 
   // ── Explore ──────────────────────────────────────────────────────
