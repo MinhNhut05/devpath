@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  ArrowLeft,
   Crown,
   CreditCard,
   Calendar,
   ChevronRight,
 } from 'lucide-react';
 import api from '../services/api';
+import { vi } from '../strings/vi';
 
 // ─── TypeScript Interfaces ─────────────────────────────────────────────────────
 
@@ -72,19 +72,26 @@ function TierBadge({ tier }: { tier: string }) {
   const tierUpper = tier.toUpperCase();
 
   const styles: Record<string, string> = {
-    FREE: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-    PRO: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-    ULTRA: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+    FREE: 'badge badge-success',
+    PRO: 'badge badge-primary',
+    ULTRA: 'badge badge-warning',
+  };
+
+  const labels: Record<string, string> = {
+    FREE: vi.settings.freeTier,
+    PRO: vi.settings.proTier,
+    ULTRA: vi.settings.ultraTier,
   };
 
   const style = styles[tierUpper] ?? styles.FREE;
+  const label = labels[tierUpper] ?? labels.FREE;
 
   return (
-    <span className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-semibold ${style}`}>
+    <span className={`${style}`}>
       {(tierUpper === 'PRO' || tierUpper === 'ULTRA') && (
         <Crown size={11} />
       )}
-      {tierUpper === 'FREE' ? 'Miễn phí' : tierUpper === 'PRO' ? 'Pro' : 'Ultra'}
+      {label}
     </span>
   );
 }
@@ -95,22 +102,22 @@ function StatusBadge({ status }: { status: string }) {
   const statusUpper = status.toUpperCase();
 
   const styles: Record<string, string> = {
-    SUCCESS: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-    PENDING: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-    FAILED: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+    SUCCESS: 'badge badge-success',
+    PENDING: 'badge badge-warning',
+    FAILED: 'badge badge-error',
   };
 
   const labels: Record<string, string> = {
-    SUCCESS: 'Thành công',
-    PENDING: 'Đang xử lý',
-    FAILED: 'Thất bại',
+    SUCCESS: vi.settings.statusSuccess,
+    PENDING: vi.settings.statusPending,
+    FAILED: vi.settings.statusFailed,
   };
 
   const style = styles[statusUpper] ?? styles.PENDING;
   const label = labels[statusUpper] ?? statusUpper;
 
   return (
-    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${style}`}>
+    <span className={style}>
       {label}
     </span>
   );
@@ -145,7 +152,7 @@ export default function Settings() {
         setUser(userRes.data.data);
         setCurrentSub(subRes.data.data);
       } catch {
-        setError('Không thể tải thông tin. Vui lòng thử lại.');
+        setError(vi.settings.loadError);
       } finally {
         setLoading(false);
       }
@@ -185,8 +192,8 @@ export default function Settings() {
   // ── Loading state ───────────────────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <p className="text-gray-400 dark:text-gray-500">Đang tải...</p>
+      <div className="flex items-center justify-center py-20">
+        <p className="text-dp-text-muted">{vi.common.loading}</p>
       </div>
     );
   }
@@ -194,14 +201,14 @@ export default function Settings() {
   // ── Error state ─────────────────────────────────────────────────────────────
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
-        <div className="text-center space-y-4">
-          <p className="text-gray-500 dark:text-gray-400">{error}</p>
+      <div className="flex items-center justify-center py-20 px-4">
+        <div className="glass rounded-2xl p-6 text-center space-y-4 max-w-md">
+          <p className="text-dp-text-secondary">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors"
+            className="btn-primary"
           >
-            Thử lại
+            {vi.common.retry}
           </button>
         </div>
       </div>
@@ -219,36 +226,31 @@ export default function Settings() {
 
   // ── Main render ─────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-10 px-4">
-      <div className="max-w-xl mx-auto space-y-6">
+    <div className="space-y-6">
 
-        {/* ── Back button ──────────────────────────────────────────────────── */}
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-        >
-          <ArrowLeft size={16} />
-          Về Dashboard
-        </button>
+      {/* ── Page title ──────────────────────────────────────────────── */}
+      <h1 className="text-2xl font-bold text-dp-text-primary">{vi.settings.title}</h1>
 
-        {/* ── Section 1: Thông tin tài khoản ────────────────────────────── */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-900/20 p-5">
-          <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
-            Thông tin tài khoản
+      <div className="max-w-2xl space-y-6">
+
+        {/* ── Section 1: Thông tin tài khoản ────────────────────────── */}
+        <div className="glass rounded-2xl p-5">
+          <h2 className="text-sm font-semibold text-dp-text-muted uppercase tracking-wide mb-4">
+            {vi.settings.accountInfo}
           </h2>
 
           <div className="flex items-center gap-4">
             {/* Avatar letter */}
-            <div className="w-14 h-14 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-xl shrink-0">
+            <div className="w-14 h-14 bg-dp-glass-hover rounded-full flex items-center justify-center text-dp-text-primary font-bold text-xl shrink-0">
               {avatarLetter}
             </div>
 
             {/* Info */}
             <div className="space-y-1 min-w-0">
-              <p className="font-semibold text-gray-800 dark:text-gray-100 truncate">
-                {user?.displayName ?? 'Người dùng'}
+              <p className="font-semibold text-dp-text-primary truncate">
+                {user?.displayName ?? vi.settings.defaultUser}
               </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+              <p className="text-sm text-dp-text-secondary truncate">
                 {user?.email}
               </p>
               <TierBadge tier={tier} />
@@ -256,30 +258,31 @@ export default function Settings() {
           </div>
         </div>
 
-        {/* ── Section 2: Subscription ────────────────────────────────────── */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-900/20 p-5">
-          <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
-            Gói đăng ký
+        {/* ── Section 2: Subscription ────────────────────────────────── */}
+        <div className="glass rounded-2xl p-5">
+          <h2 className="text-sm font-semibold text-dp-text-muted uppercase tracking-wide mb-4">
+            {vi.settings.subscription}
           </h2>
 
           {isFree ? (
             /* FREE tier */
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <Crown size={20} className="text-gray-400 dark:text-gray-500" />
-                <p className="text-gray-600 dark:text-gray-300">
-                  Bạn đang dùng gói <span className="font-semibold">miễn phí</span>
+                <Crown size={20} className="text-dp-text-muted" />
+                <p className="text-dp-text-secondary">
+                  {vi.settings.freeDesc}{' '}
+                  <span className="font-semibold text-dp-text-primary">{vi.settings.freeLabel}</span>
                 </p>
               </div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Nâng cấp lên Pro hoặc Ultra để trải nghiệm đầy đủ tính năng.
+              <p className="text-sm text-dp-text-muted">
+                {vi.settings.upgradeDesc}
               </p>
               <button
                 onClick={() => navigate('/plans')}
-                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors"
+                className="btn-primary"
               >
                 <Crown size={14} />
-                Nâng cấp ngay
+                {vi.settings.upgradeButton}
                 <ChevronRight size={14} />
               </button>
             </div>
@@ -287,7 +290,7 @@ export default function Settings() {
             /* PRO / ULTRA tier với subscription active */
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-gray-600 dark:text-gray-300 font-medium">Gói hiện tại</span>
+                <span className="text-dp-text-secondary font-medium">{vi.settings.currentPlan}</span>
                 <TierBadge tier={tier} />
               </div>
 
@@ -295,27 +298,27 @@ export default function Settings() {
                 <>
                   {/* Ngày bắt đầu */}
                   <div className="flex items-center gap-3 text-sm">
-                    <Calendar size={16} className="text-gray-400 dark:text-gray-500 shrink-0" />
-                    <span className="text-gray-500 dark:text-gray-400">Ngày bắt đầu:</span>
-                    <span className="text-gray-700 dark:text-gray-200 font-medium">
+                    <Calendar size={16} className="text-dp-text-muted shrink-0" />
+                    <span className="text-dp-text-muted">{vi.settings.startDate}</span>
+                    <span className="text-dp-text-primary font-medium">
                       {formatDate(sub.startDate)}
                     </span>
                   </div>
 
                   {/* Ngày hết hạn */}
                   <div className="flex items-center gap-3 text-sm">
-                    <Calendar size={16} className="text-gray-400 dark:text-gray-500 shrink-0" />
-                    <span className="text-gray-500 dark:text-gray-400">Hết hạn:</span>
-                    <span className="text-gray-700 dark:text-gray-200 font-medium">
+                    <Calendar size={16} className="text-dp-text-muted shrink-0" />
+                    <span className="text-dp-text-muted">{vi.settings.endDate}</span>
+                    <span className="text-dp-text-primary font-medium">
                       {formatDate(sub.endDate)}
                     </span>
                   </div>
 
                   {/* Số ngày còn lại */}
-                  <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg px-4 py-3 flex items-center justify-between">
-                    <span className="text-sm text-purple-700 dark:text-purple-300">Còn lại</span>
-                    <span className="text-sm font-bold text-purple-700 dark:text-purple-300">
-                      {getDaysLeft(sub.endDate)} ngày
+                  <div className="glass rounded-xl px-4 py-3 flex items-center justify-between">
+                    <span className="text-sm text-dp-text-secondary">{vi.settings.daysLeft}</span>
+                    <span className="text-sm font-bold text-dp-text-primary">
+                      {getDaysLeft(sub.endDate)} {vi.settings.daysUnit}
                     </span>
                   </div>
                 </>
@@ -324,33 +327,33 @@ export default function Settings() {
               {/* Nút gia hạn */}
               <button
                 onClick={() => navigate('/plans')}
-                className="flex items-center gap-2 border border-purple-400 dark:border-purple-600 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 text-sm font-medium px-5 py-2.5 rounded-lg transition-colors"
+                className="btn-primary"
               >
-                Gia hạn gói
+                {vi.settings.renewButton}
                 <ChevronRight size={14} />
               </button>
             </div>
           )}
         </div>
 
-        {/* ── Section 3: Lịch sử thanh toán ────────────────────────────── */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-900/20 p-5">
-          <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
-            Lịch sử thanh toán
+        {/* ── Section 3: Lịch sử thanh toán ────────────────────────── */}
+        <div className="glass rounded-2xl p-5">
+          <h2 className="text-sm font-semibold text-dp-text-muted uppercase tracking-wide mb-4">
+            {vi.settings.paymentHistory}
           </h2>
 
           {history.length === 0 && !historyLoading ? (
             /* Empty state */
             <div className="text-center py-8 space-y-2">
-              <CreditCard size={32} className="text-gray-300 dark:text-gray-600 mx-auto" />
-              <p className="text-sm text-gray-400 dark:text-gray-500">Chưa có giao dịch nào</p>
+              <CreditCard size={32} className="text-dp-text-ghost mx-auto" />
+              <p className="text-sm text-dp-text-muted">{vi.settings.noTransactions}</p>
             </div>
           ) : (
             <div className="space-y-3">
               {history.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700 last:border-0"
+                  className="flex items-center justify-between py-3 border-b border-dp-border-subtle last:border-0"
                 >
                   {/* Left: ngày + tier */}
                   <div className="space-y-1 min-w-0">
@@ -358,13 +361,13 @@ export default function Settings() {
                       <TierBadge tier={item.tier} />
                       <StatusBadge status={item.status} />
                     </div>
-                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                    <p className="text-xs text-dp-text-muted mt-1">
                       {formatDate(item.createdAt)} · {item.provider}
                     </p>
                   </div>
 
                   {/* Right: số tiền */}
-                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 shrink-0 ml-3">
+                  <p className="text-sm font-semibold text-dp-text-primary shrink-0 ml-3">
                     {formatAmount(item.amount)}
                   </p>
                 </div>
@@ -375,16 +378,16 @@ export default function Settings() {
                 <button
                   onClick={() => fetchHistory(historyOffset + LIMIT)}
                   disabled={historyLoading}
-                  className="w-full text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium py-2 transition-colors disabled:opacity-40"
+                  className="w-full text-sm text-dp-text-secondary hover:text-dp-text-primary font-medium py-2 transition-colors disabled:opacity-40"
                 >
-                  {historyLoading ? 'Đang tải...' : 'Xem thêm →'}
+                  {historyLoading ? vi.common.loading : `${vi.settings.loadMore} →`}
                 </button>
               )}
 
               {/* Loading spinner khi đang load more */}
               {historyLoading && history.length > 0 && (
-                <p className="text-center text-xs text-gray-400 dark:text-gray-500 py-2">
-                  Đang tải thêm...
+                <p className="text-center text-xs text-dp-text-muted py-2">
+                  {vi.settings.loadingMore}
                 </p>
               )}
             </div>
