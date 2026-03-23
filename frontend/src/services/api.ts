@@ -1,14 +1,16 @@
 import axios from 'axios';
+import { toast } from 'sonner';
 import { useAuthStore } from '../stores/authStore';
+import { vi } from '../strings/vi';
 
-// Axios instance gọi backend API
-// VITE_API_URL được set trong frontend/.env
+const API_BASE =
+  import.meta.env.VITE_API_URL ?? 'http://localhost:3002/api/v1';
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:3002/api/v1',
-  withCredentials: true, // Tự động gửi cookie (refreshToken)
+  baseURL: API_BASE,
+  withCredentials: true,
 });
 
-// Request interceptor: tự động đính accessToken vào mọi request
 api.interceptors.request.use((config) => {
   const token = useAuthStore.getState().accessToken;
   if (token) {
@@ -17,30 +19,68 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor: nếu 401 → thử refresh token 1 lần
+let refreshPromise: Promise<string | null> | null = null;
+let sessionExpiredHandled = false;
+
+export async function refreshAccessTokenOnce(): Promise<string | null> {
+  if (!refreshPromise) {
+    refreshPromise = axios
+      .post(`${API_BASE}/auth/refresh`, {}, { withCredentials: true })
+      .then((res) => {
+        const newToken: string | null = res.data?.data?.accessToken ?? null;
+        if (newToken) {
+          useAuthStore.getState().setToken(newToken);
+        }
+        return newToken;
+      })
+      .catch(() => null)
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+
+  return refreshPromise;
+}
+
+function handleSessionExpired() {
+  if (sessionExpiredHandled) {
+    return;
+  }
+
+  sessionExpiredHandled = true;
+  useAuthStore.getState().logout();
+  toast.error(vi.auth.sessionExpired);
+
+  setTimeout(() => {
+    window.location.href = '/login';
+  }, 2000);
+}
+
+export function resetSessionExpiredGuard() {
+  sessionExpiredHandled = false;
+}
+
 api.interceptors.response.use(
   (res) => res,
   async (error) => {
     const originalRequest = error.config;
+
+    if (originalRequest?.url?.includes('/auth/refresh')) {
+      return Promise.reject(error);
+    }
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-      try {
-        const res = await axios.post(
-          `${import.meta.env.VITE_API_URL ?? 'http://localhost:3002/api/v1'}/auth/refresh`,
-          {},
-          { withCredentials: true },
-        );
-        const newToken = res.data?.data?.accessToken;
-        if (newToken) {
-          useAuthStore.getState().setToken(newToken);
-          originalRequest.headers.Authorization = `Bearer ${newToken}`;
-          return api(originalRequest);
-        }
-      } catch {
-        useAuthStore.getState().logout();
-        window.location.href = '/login';
+
+      const newToken = await refreshAccessTokenOnce();
+      if (newToken) {
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        return api(originalRequest);
       }
+
+      handleSessionExpired();
     }
+
     return Promise.reject(error);
   },
 );
