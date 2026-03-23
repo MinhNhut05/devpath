@@ -1,17 +1,28 @@
 import { Navigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
+import { ProtectedAppSkeleton } from './auth/ProtectedAppSkeleton';
 
-// Guard route cho admin: check token + role ADMIN
-// Nếu chưa login → /login, nếu không phải ADMIN → /dashboard
+/**
+ * Admin route guard: loading-aware, checks token + ADMIN role.
+ * During bootstrap: shows skeleton.
+ * After bootstrap: redirects to /login if no token, /dashboard if not ADMIN.
+ */
 export default function AdminGuard({ children }: { children: React.ReactNode }) {
-  const token = useAuthStore((s) => s.accessToken);
+  const accessToken = useAuthStore((s) => s.accessToken);
   const user = useAuthStore((s) => s.user);
+  const isLoading = useAuthStore((s) => s.isLoading);
 
-  // Chưa đăng nhập → redirect login
-  if (!token) return <Navigate to="/login" replace />;
+  if (isLoading) {
+    return <ProtectedAppSkeleton />;
+  }
 
-  // Không phải ADMIN → redirect dashboard
-  if (user?.role !== 'ADMIN') return <Navigate to="/dashboard" replace />;
+  if (!accessToken) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (user?.role !== 'ADMIN') {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   return <>{children}</>;
 }
