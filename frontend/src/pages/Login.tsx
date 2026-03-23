@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import api from '../services/api';
+import api, { resetSessionExpiredGuard } from '../services/api';
 import { useAuthStore } from '../stores/authStore';
 
 const EASE_SMOOTH = [0.16, 1, 0.3, 1] as const;
