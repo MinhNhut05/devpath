@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { vi } from '../strings/vi';
 
 interface Option {
   value: string;
@@ -23,10 +24,10 @@ interface Recommendation {
 
 // Mapping slug → display name (vì backend trả về slug, cần hiển thị tên đẹp cho user)
 const PATH_NAMES: Record<string, string> = {
-  'frontend-developer': 'Frontend Developer',
-  'backend-developer': 'Backend Developer',
-  'fullstack-developer': 'Fullstack Developer',
-  'ai-python': 'AI / Data Science (Python)',
+  'frontend-developer': vi.onboarding.pathNames.frontendDeveloper,
+  'backend-developer': vi.onboarding.pathNames.backendDeveloper,
+  'fullstack-developer': vi.onboarding.pathNames.fullstackDeveloper,
+  'ai-python': vi.onboarding.pathNames.aiPython,
 };
 
 type Step = 'questions' | 'recommendation' | 'done';
@@ -46,7 +47,7 @@ export default function Onboarding() {
   useEffect(() => {
     api.get('/onboarding/questions')
       .then((res) => setQuestions(res.data.data))
-      .catch(() => setError('Không tải được câu hỏi'));
+      .catch(() => setError(vi.onboarding.loadError));
   }, []);
 
   // Xử lý chọn đáp án
@@ -86,11 +87,11 @@ export default function Onboarding() {
         setRecommendation(recData);
         setStep('recommendation');
       } else {
-        setError('AI không trả về gợi ý. Vui lòng thử lại.');
+        setError(vi.onboarding.noRecommendation);
       }
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { error?: { message?: string } } } })
-        ?.response?.data?.error?.message ?? 'Có lỗi xảy ra';
+        ?.response?.data?.error?.message ?? vi.onboarding.genericError;
       setError(msg);
     } finally {
       setLoading(false);
@@ -112,20 +113,27 @@ export default function Onboarding() {
   // ── Render: Questions ─────────────────────────────────────────────────────
   if (step === 'questions') {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-10 px-4">
-        <div className="max-w-xl mx-auto">
-          <h1 className="text-2xl font-bold mb-1 text-gray-800 dark:text-gray-100">Thiết lập hành trình học</h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm mb-8">Trả lời {questions.length} câu hỏi để AI gợi ý lộ trình phù hợp</p>
+      <div
+        className="min-h-screen py-10 px-4 relative overflow-hidden"
+        style={{ background: 'linear-gradient(135deg, #0d0a1a 0%, #1a0e2e 30%, #12101f 60%, #0a0a18 100%)' }}
+      >
+        {/* Decorative orbs */}
+        <div className="absolute top-[-10%] right-[-5%] w-[400px] h-[400px] rounded-full opacity-15 blur-[100px]" style={{ background: 'radial-gradient(circle, #8E37D7, transparent)' }} />
+        <div className="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] rounded-full opacity-10 blur-[100px]" style={{ background: 'radial-gradient(circle, #4facfe, transparent)' }} />
+
+        <div className="relative z-10 max-w-xl mx-auto">
+          <h1 className="text-2xl font-bold mb-1 bg-gradient-to-r from-purple-400 via-cyan-400 to-purple-400 bg-clip-text text-transparent">{vi.onboarding.title}</h1>
+          <p className="text-white/40 text-sm mb-8">{vi.onboarding.subtitle.replace('{count}', String(questions.length))}</p>
 
           {error && (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded p-3 text-sm mb-4">{error}</div>
+            <div className="bg-red-500/10 border border-red-500/30 text-red-300 rounded-xl p-3 text-sm mb-4 backdrop-blur-sm">{error}</div>
           )}
 
           <div className="space-y-6">
             {questions.map((q, idx) => (
-              <div key={q.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-900/20 p-5">
-                <p className="font-medium mb-3 text-gray-800 dark:text-gray-100">
-                  <span className="text-blue-600 dark:text-blue-400 mr-2">{idx + 1}.</span>{q.question}
+              <div key={q.id} className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-2xl shadow-lg shadow-black/20 p-5">
+                <p className="font-medium mb-3 text-white/90">
+                  <span className="text-purple-400/70 mr-2">{idx + 1}.</span>{q.question}
                 </p>
                 <div className="space-y-2">
                   {q.options.map((opt) => {
@@ -137,10 +145,10 @@ export default function Onboarding() {
                       <button
                         key={opt.value}
                         onClick={() => handleSelect(q.id, opt.value, q.type)}
-                        className={`w-full text-left px-4 py-2.5 rounded-lg border text-sm transition-colors ${
+                        className={`w-full text-left px-4 py-2.5 rounded-xl border text-sm transition-all ${
                           selected
-                            ? 'bg-blue-600 border-blue-600 text-white'
-                            : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:border-blue-400 text-gray-700 dark:text-gray-200'
+                            ? 'bg-purple-500/20 border-purple-500/40 text-purple-200 shadow-[0_0_15px_rgba(139,92,246,0.1)]'
+                            : 'bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.06] hover:border-white/[0.12] text-white/60'
                         }`}
                       >
                         {opt.label}
@@ -155,9 +163,9 @@ export default function Onboarding() {
           <button
             onClick={handleSubmit}
             disabled={!allAnswered || loading}
-            className="mt-8 w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-xl disabled:opacity-40"
+            className="mt-8 w-full bg-gradient-to-r from-purple-600 to-cyan-500 text-white font-semibold py-3 rounded-xl disabled:opacity-40 hover:opacity-90 transition-all shadow-lg shadow-purple-500/20"
           >
-            {loading ? 'Đang xử lý...' : 'Xem gợi ý của AI →'}
+            {loading ? vi.onboarding.submitting : `${vi.onboarding.submitButton} →`}
           </button>
         </div>
       </div>
@@ -168,29 +176,36 @@ export default function Onboarding() {
   if (step === 'recommendation' && recommendation) {
     const pathDisplayName = PATH_NAMES[recommendation.primaryPath] ?? recommendation.primaryPath;
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-10 px-4">
-        <div className="max-w-xl mx-auto">
-          <div className="flex items-center gap-2 mb-6">
-            <span className="text-2xl font-bold text-gray-800 dark:text-gray-100">Gợi ý của AI</span>
-            <span className={`text-xs px-2 py-0.5 rounded-full ${
+      <div
+        className="min-h-screen py-10 px-4 relative overflow-hidden"
+        style={{ background: 'linear-gradient(135deg, #0d0a1a 0%, #1a0e2e 30%, #12101f 60%, #0a0a18 100%)' }}
+      >
+        {/* Decorative orbs */}
+        <div className="absolute top-[-10%] left-[30%] w-[400px] h-[400px] rounded-full opacity-15 blur-[100px]" style={{ background: 'radial-gradient(circle, #8E37D7, transparent)' }} />
+        <div className="absolute bottom-[-10%] right-[10%] w-[300px] h-[300px] rounded-full opacity-10 blur-[100px]" style={{ background: 'radial-gradient(circle, #4facfe, transparent)' }} />
+
+        <div className="relative z-10 max-w-xl mx-auto">
+          <div className="flex items-center gap-3 mb-6">
+            <span className="text-2xl font-bold bg-gradient-to-r from-purple-400 via-cyan-400 to-purple-400 bg-clip-text text-transparent">{vi.onboarding.recommendationTitle}</span>
+            <span className={`text-xs px-2.5 py-1 rounded-full backdrop-blur-sm border ${
               recommendation.source === 'ai'
-                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+                : 'bg-yellow-500/10 border-yellow-500/30 text-yellow-300'
             }`}>
-              {recommendation.source === 'ai' ? '✨ AI' : '📋 Fallback'}
+              {recommendation.source === 'ai' ? vi.onboarding.aiSource : vi.onboarding.fallbackSource}
             </span>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-900/20 p-6 mb-4">
-            <h2 className="font-semibold text-lg mb-1 text-gray-800 dark:text-gray-100">{pathDisplayName}</h2>
-            <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">{recommendation.reason}</p>
+          <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-2xl shadow-lg shadow-black/20 p-6 mb-4">
+            <h2 className="font-semibold text-lg mb-1 text-white/90">{pathDisplayName}</h2>
+            <p className="text-white/40 text-sm mb-4">{recommendation.reason}</p>
 
             {recommendation.alternativePaths.length > 0 && (
               <div className="mb-4">
-                <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Lộ trình thay thế:</p>
+                <p className="text-sm font-medium text-white/50 mb-2">{vi.onboarding.alternativePaths}</p>
                 <div className="flex flex-wrap gap-2">
                   {recommendation.alternativePaths.map((slug) => (
-                    <span key={slug} className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs px-2 py-1 rounded-full">
+                    <span key={slug} className="bg-white/[0.04] border border-white/[0.08] text-white/50 text-xs px-2.5 py-1 rounded-full">
                       {PATH_NAMES[slug] ?? slug}
                     </span>
                   ))}
@@ -200,10 +215,10 @@ export default function Onboarding() {
 
             {recommendation.focusAreas.length > 0 && (
               <div className="mt-4">
-                <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Chủ đề cần tập trung:</p>
+                <p className="text-sm font-medium text-white/50 mb-2">{vi.onboarding.focusAreas}</p>
                 <div className="flex flex-wrap gap-2">
                   {recommendation.focusAreas.map((topic) => (
-                    <span key={topic} className="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs px-2 py-1 rounded-full">{topic}</span>
+                    <span key={topic} className="bg-purple-500/10 border border-purple-500/25 text-purple-300 text-xs px-2.5 py-1 rounded-full">{topic}</span>
                   ))}
                 </div>
               </div>
@@ -211,10 +226,10 @@ export default function Onboarding() {
 
             {recommendation.tips.length > 0 && (
               <div className="mt-4">
-                <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Mẹo học tập:</p>
+                <p className="text-sm font-medium text-white/50 mb-2">{vi.onboarding.studyTips}</p>
                 <ul className="list-disc list-inside space-y-1">
                   {recommendation.tips.map((tip) => (
-                    <li key={tip} className="text-sm text-gray-600 dark:text-gray-300">{tip}</li>
+                    <li key={tip} className="text-sm text-white/50">{tip}</li>
                   ))}
                 </ul>
               </div>
@@ -223,9 +238,9 @@ export default function Onboarding() {
 
           <button
             onClick={handleConfirm}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-xl"
+            className="w-full bg-gradient-to-r from-purple-600 to-cyan-500 text-white font-semibold py-3 rounded-xl hover:opacity-90 transition-all shadow-lg shadow-purple-500/20"
           >
-            Bắt đầu học →
+            {`${vi.onboarding.confirmButton} →`}
           </button>
         </div>
       </div>
@@ -234,11 +249,16 @@ export default function Onboarding() {
 
   // Fallback: đang loading hoặc recommendation chưa ready
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-      <div className="text-center">
-        <p className="text-gray-500 dark:text-gray-400">Đang tải...</p>
+    <div
+      className="min-h-screen flex items-center justify-center relative overflow-hidden"
+      style={{ background: 'linear-gradient(135deg, #0d0a1a 0%, #1a0e2e 30%, #12101f 60%, #0a0a18 100%)' }}
+    >
+      <div className="absolute top-[40%] left-[40%] w-[300px] h-[300px] rounded-full opacity-15 blur-[100px]" style={{ background: 'radial-gradient(circle, #8E37D7, transparent)' }} />
+      <div className="relative z-10 text-center">
+        <div className="inline-block w-8 h-8 border-2 border-purple-500/30 border-t-purple-400 rounded-full animate-spin mb-4" />
+        <p className="text-white/40">{vi.onboarding.loading}</p>
         {error && (
-          <div className="mt-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded p-3 text-sm">
+          <div className="mt-4 bg-red-500/10 border border-red-500/30 text-red-300 rounded-xl p-3 text-sm backdrop-blur-sm">
             {error}
           </div>
         )}

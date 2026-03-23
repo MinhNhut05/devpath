@@ -227,12 +227,18 @@ export const vi = {
     genericError: 'Có lỗi xảy ra',
     recommendationTitle: 'Gợi ý của AI',
     aiSource: 'AI',
-    fallbackSource: 'Fallback',
+    fallbackSource: 'Gợi ý dự phòng',
     alternativePaths: 'Lộ trình thay thế:',
     focusAreas: 'Chủ đề cần tập trung:',
     studyTips: 'Mẹo học tập:',
     confirmButton: 'Bắt đầu học',
     loading: 'Đang tải...',
+    pathNames: {
+      frontendDeveloper: 'Lập trình viên Frontend',
+      backendDeveloper: 'Lập trình viên Backend',
+      fullstackDeveloper: 'Lập trình viên Fullstack',
+      aiPython: 'AI / Khoa học dữ liệu (Python)',
+    },
   },
 
   // ── Sidebar / Navigation ────────────────────────────────────────
@@ -278,7 +284,18 @@ export const vi = {
     statsLessons: 'Bài học',
     statsSatisfaction: 'Hài lòng',
     testimonialsTitle: 'Học viên nói gì?',
-    copyright: '© 2024 DevPath Learning. All rights reserved.',
+    testimonials: {
+      minhTuanRole: 'Lập trình viên Frontend',
+      minhTuanReview:
+        'DevPath giúp mình đi từ con số 0 đến có việc làm frontend chỉ trong 6 tháng. Lộ trình rõ ràng, AI mentor rất hữu ích!',
+      thanhHaRole: 'Sinh viên',
+      thanhHaReview:
+        'Cách học gamification giúp mình duy trì động lực mỗi ngày. Mình đã giữ streak 30 ngày liên tiếp rồi!',
+      ducAnhRole: 'Lập trình viên Backend',
+      ducAnhReview:
+        'Bài tập thực tế, quiz kiểm tra kiến thức và AI review code - đúng những gì mình cần.',
+    },
+    copyright: '© 2024 DevPath Learning. Bảo lưu mọi quyền.',
   },
 
   // ── AI Chat ──────────────────────────────────────────────────────
