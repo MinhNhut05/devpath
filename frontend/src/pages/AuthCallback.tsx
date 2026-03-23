@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import api, { resetSessionExpiredGuard } from '../services/api';
 import { useAuthStore } from '../stores/authStore';
+import { vi } from '../strings/vi';
 
 // Trang callback sau OAuth (Google / GitHub)
 // Backend redirect về: /auth/callback?token=xxx&isNewUser=true
@@ -46,7 +47,7 @@ export default function AuthCallback() {
 
       <div className="relative z-10 text-center">
         <div className="inline-block w-8 h-8 border-2 border-purple-500/30 border-t-purple-400 rounded-full animate-spin mb-4" />
-        <p className="text-white/40">Đang đăng nhập...</p>
+        <p className="text-white/40">{vi.auth.callbackLoading}</p>
       </div>
     </div>
   );
