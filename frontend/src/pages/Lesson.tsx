@@ -1,189 +1,155 @@
-import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import api from '../services/api';
 import MarkdownContent from '../components/MarkdownContent';
-
-// ─── TypeScript Interfaces ────────────────────────────────────────────────────
-
-interface ExternalLink {
-  title: string;
-  url: string;
-  type: 'documentation' | 'video' | 'tutorial' | 'course' | 'interactive';
-}
-
-interface Lesson {
-  id: string;
-  title: string;
-  slug: string;
-  summary: string;
-  externalLinks: string; // JSON string, parse với try/catch
-  estimatedMins: number;
-  quiz?: { id: string; title: string } | null;
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+import { useLesson, type ExternalLink } from '../hooks/useLesson';
+import { useLessonComplete } from '../hooks/useLessonComplete';
+import { vi } from '../strings/vi';
+import { Skeleton } from '../components/feedback/Skeleton';
 
 const linkTypeConfig: Record<ExternalLink['type'], { label: string; className: string }> = {
-  documentation: { label: 'Docs',        className: 'bg-blue-100 text-blue-700' },
-  video:         { label: 'Video',        className: 'bg-red-100 text-red-700' },
-  tutorial:      { label: 'Tutorial',     className: 'bg-green-100 text-green-700' },
-  course:        { label: 'Course',       className: 'bg-purple-100 text-purple-700' },
-  interactive:   { label: 'Interactive',  className: 'bg-yellow-100 text-yellow-700' },
+  documentation: { label: 'Docs', className: 'bg-white/20 text-white' },
+  video: { label: 'Video', className: 'bg-white/20 text-white' },
+  tutorial: { label: 'Tutorial', className: 'bg-white/20 text-white' },
+  course: { label: 'Course', className: 'bg-white/20 text-white' },
+  interactive: { label: 'Interactive', className: 'bg-white/20 text-white' },
 };
 
-// ─── Component ────────────────────────────────────────────────────────────────
-
 export default function Lesson() {
-  const navigate      = useNavigate();
-  const { slug }      = useParams<{ slug: string }>();
+  const navigate = useNavigate();
+  const { slug } = useParams<{ slug: string }>();
+  const { data: lesson, isLoading, error, refetch } = useLesson(slug);
+  const completeMutation = useLessonComplete(slug);
 
-  const [lesson, setLesson]               = useState<Lesson | null>(null);
-  const [loading, setLoading]             = useState(true);
-  const [errorType, setErrorType]         = useState<'403' | '404' | 'generic' | null>(null);
-  const [completing, setCompleting]       = useState(false);
-  const [completed, setCompleted]         = useState(false);
-  const [completeError, setCompleteError] = useState('');
-
-  // Fetch bài học + tự động đánh dấu "bắt đầu học" khi mount
-  useEffect(() => {
-    if (!slug) {
-      setErrorType('404');
-      setLoading(false);
-      return;
-    }
-
-    Promise.all([
-      api.get(`/lessons/${slug}`),
-      api.post(`/lessons/${slug}/start`).catch(() => {}), // Lỗi start không block UI
-    ])
-      .then(([res]) => setLesson(res.data.data))
-      .catch((err) => {
-        const status = (err as { response?: { status?: number } })?.response?.status;
-        if (status === 403) setErrorType('403');
-        else if (status === 404) setErrorType('404');
-        else setErrorType('generic');
-      })
-      .finally(() => setLoading(false));
-  }, [slug]);
-
-  // Đánh dấu hoàn thành bài học
-  async function handleComplete() {
-    setCompleting(true);
-    setCompleteError('');
-    try {
-      await api.post(`/lessons/${slug}/complete`);
-      setCompleted(true);
-    } catch {
-      setCompleteError('Hoàn thành thất bại. Vui lòng thử lại.');
-    } finally {
-      setCompleting(false);
-    }
-  }
-
-  // ── Loading state ──────────────────────────────────────────────────────────
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-gray-400">Đang tải...</p>
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-500 py-10 px-4">
+        <div className="max-w-xl mx-auto space-y-6 animate-pulse">
+          <Skeleton className="h-4 w-24 bg-white/20" />
+          <div className="bg-white/15 backdrop-blur-xl border border-white/20 rounded-2xl p-5 space-y-4">
+            <Skeleton className="h-8 w-3/4 bg-white/20" />
+            <Skeleton className="h-6 w-20 rounded-full bg-white/20" />
+            <Skeleton className="h-24 w-full bg-white/20" />
+          </div>
+          <div className="bg-white/10 border border-white/20 rounded-2xl p-5 space-y-3">
+            <Skeleton className="h-5 w-32 bg-white/20" />
+            <Skeleton className="h-12 w-full bg-white/20" />
+            <Skeleton className="h-12 w-full bg-white/20" />
+          </div>
+          <Skeleton className="h-12 w-full rounded-xl bg-white/20" />
+        </div>
       </div>
     );
   }
 
-  // ── Error states ───────────────────────────────────────────────────────────
-  if (errorType) {
+  const status = (error as { response?: { status?: number } } | null)?.response?.status;
+
+  if (status === 403) {
     return (
-      <div className="min-h-screen bg-gray-50 py-10 px-4">
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-500 py-10 px-4">
         <div className="max-w-xl mx-auto space-y-6">
-          <div className="bg-white rounded-xl shadow-sm p-8 text-center space-y-4">
-            {errorType === '403' && (
-              <>
-                <p className="text-gray-600">Bạn chưa đăng ký lộ trình chứa bài học này.</p>
-                <button
-                  onClick={() => navigate('/explore')}
-                  className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2.5 px-5 rounded-lg transition-colors"
-                >
-                  Khám phá lộ trình →
-                </button>
-              </>
-            )}
-            {errorType === '404' && (
-              <p className="text-gray-600">Không tìm thấy bài học.</p>
-            )}
-            {errorType === 'generic' && (
-              <p className="text-gray-600">Có lỗi xảy ra. Vui lòng thử lại.</p>
-            )}
+          <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-8 text-center space-y-4">
+            <p className="text-white/80">{vi.lesson.notEnrolled}</p>
+            <button
+              onClick={() => navigate('/explore')}
+              className="bg-white text-purple-700 font-semibold text-sm py-2.5 px-5 rounded-xl transition-colors hover:bg-white/90"
+            >
+              {vi.lesson.explorePathsCta}
+            </button>
           </div>
         </div>
       </div>
     );
   }
 
-  // ── Guard: lesson phải có dữ liệu sau khi load xong ───────────────────────
-  if (!lesson) return null;
+  if (status === 404) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-500 py-10 px-4">
+        <div className="max-w-xl mx-auto space-y-6">
+          <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-8 text-center space-y-4">
+            <p className="text-white/80">{vi.lesson.notFound}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-  // Parse external links từ JSON string
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-500 py-10 px-4">
+        <div className="max-w-xl mx-auto space-y-6">
+          <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-8 text-center space-y-4">
+            <p className="text-white/80">{vi.lesson.genericError}</p>
+            <button
+              onClick={() => refetch()}
+              className="bg-white text-purple-700 font-semibold text-sm py-2.5 px-5 rounded-xl transition-colors hover:bg-white/90"
+            >
+              {vi.common.retry}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!lesson) {
+    return null;
+  }
+
   const externalLinks: ExternalLink[] = (() => {
-    try { return JSON.parse(lesson.externalLinks ?? '[]'); }
-    catch { return []; }
+    try {
+      return JSON.parse(lesson.externalLinks ?? '[]');
+    } catch {
+      return [];
+    }
   })();
 
-  // ── Main render ────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-500 py-10 px-4">
       <div className="max-w-xl mx-auto space-y-6">
-
-        {/* ── Back navigation ─────────────────────────────────────────────── */}
         <button
           onClick={() => navigate(-1)}
-          className="text-sm text-gray-500 hover:text-gray-700 transition-colors flex items-center gap-1"
+          className="text-sm text-white/70 hover:text-white transition-colors flex items-center gap-1"
         >
-          ← Quay lại
+          ← {vi.lesson.goBack}
         </button>
 
-        {/* ── Lesson content card ──────────────────────────────────────────── */}
-        <div className="bg-white rounded-xl shadow-sm p-5 space-y-4">
-          <h1 className="text-2xl font-bold text-gray-800">{lesson.title}</h1>
+        <div className="bg-white/15 backdrop-blur-xl border border-white/20 rounded-2xl p-5 space-y-4">
+          <h1 className="text-2xl font-bold text-white">{lesson.title}</h1>
 
-          {/* Estimated time badge */}
-          <span className="inline-flex items-center gap-1 text-xs text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">
-            ⏱ {lesson.estimatedMins} phút
+          <span className="inline-flex items-center gap-1 text-xs text-white/70 bg-white/20 px-2.5 py-1 rounded-full">
+            ⏱ {lesson.estimatedMins} {vi.lesson.minutes}
           </span>
 
-          {/* Summary */}
-          <MarkdownContent content={lesson.summary} />
+          <MarkdownContent content={lesson.summary} className="prose-invert" />
         </div>
 
-        {/* ── External links section ───────────────────────────────────────── */}
         {externalLinks.length > 0 && (
-          <div className="bg-white rounded-xl shadow-sm p-5 space-y-3">
-            <h2 className="text-sm font-semibold text-gray-700">Tài liệu tham khảo</h2>
+          <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-5 space-y-3">
+            <h2 className="text-sm font-semibold text-white">{vi.lesson.references}</h2>
 
             <div className="space-y-2">
               {externalLinks.map((link, index) => {
                 const typeConf = linkTypeConfig[link.type] ?? {
                   label: link.type,
-                  className: 'bg-gray-100 text-gray-600',
+                  className: 'bg-white/10 text-white/70',
                 };
+
                 return (
                   <a
                     key={index}
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-between bg-gray-50 hover:bg-gray-100 border border-gray-100 rounded-lg px-4 py-3 transition-colors group"
+                    className="flex items-center justify-between bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl px-4 py-3 transition-colors group"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      {/* Type badge */}
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${typeConf.className}`}>
                         {typeConf.label}
                       </span>
-                      {/* Link title */}
-                      <span className="text-sm text-gray-700 truncate group-hover:text-blue-600 transition-colors">
+                      <span className="text-sm text-white/80 truncate group-hover:text-white transition-colors">
                         {link.title}
                       </span>
                     </div>
-                    {/* Open in new tab icon */}
-                    <span className="text-gray-400 group-hover:text-blue-500 flex-shrink-0 ml-2 text-xs">
+                    <span className="text-white/50 group-hover:text-white flex-shrink-0 ml-2 text-xs">
                       ↗
                     </span>
                   </a>
@@ -193,48 +159,38 @@ export default function Lesson() {
           </div>
         )}
 
-        {/* ── Complete section ─────────────────────────────────────────────── */}
-        <div className="bg-white rounded-xl shadow-sm p-5 space-y-3">
-          {!completed ? (
-            <>
-              {completeError && (
-                <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3">
-                  <p className="text-sm text-red-600">{completeError}</p>
-                </div>
-              )}
-              <button
-                onClick={handleComplete}
-                disabled={completing}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2.5 rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {completing ? 'Đang xử lý...' : 'Hoàn thành bài học ✓'}
-              </button>
-            </>
+        <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-5 space-y-3">
+          {!completeMutation.isSuccess ? (
+            <button
+              onClick={() => completeMutation.mutate()}
+              disabled={completeMutation.isPending}
+              className="w-full bg-white text-purple-700 font-semibold text-sm py-2.5 rounded-xl transition-colors hover:bg-white/90 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {completeMutation.isPending ? vi.lesson.completing : `${vi.lesson.completeButton} ✓`}
+            </button>
           ) : (
             <div className="text-center space-y-3">
-              <p className="text-green-600 font-semibold">🎉 Hoàn thành!</p>
+              <p className="text-white font-semibold">🎉 {vi.lesson.completed}</p>
               <button
                 onClick={() => navigate('/dashboard')}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2.5 rounded-lg transition-colors"
+                className="w-full bg-white text-purple-700 font-semibold text-sm py-2.5 rounded-xl transition-colors hover:bg-white/90"
               >
-                Quay về Dashboard
+                {vi.lesson.backToDashboard}
               </button>
             </div>
           )}
         </div>
 
-        {/* ── Quiz section ──────────────────────────────────────────────────── */}
         {lesson.quiz && (
-          <div className="bg-white rounded-xl shadow-sm p-5">
+          <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-5">
             <button
               onClick={() => navigate(`/lesson/${slug}/quiz`)}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2"
+              className="w-full bg-white text-purple-700 font-semibold text-sm py-2.5 rounded-xl transition-colors hover:bg-white/90 flex items-center justify-center gap-2"
             >
-              📝 Làm Quiz: {lesson.quiz.title}
+              📝 {vi.lesson.takeQuiz}: {lesson.quiz.title}
             </button>
           </div>
         )}
-
       </div>
     </div>
   );
