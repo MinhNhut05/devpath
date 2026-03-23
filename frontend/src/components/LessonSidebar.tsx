@@ -1,145 +1,98 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, ChevronRight } from 'lucide-react';
-import api from '../services/api';
-
-// ─── TypeScript Interfaces ────────────────────────────────────────────────────
-
-interface LessonItem {
-  id: string;
-  title: string;
-  slug: string;
-  summary: string;
-  estimatedMins: number;
-}
-
-interface TrackLesson {
-  order: number;
-  lesson: LessonItem;
-}
-
-interface Track {
-  id: string;
-  name: string;
-  isOptional: boolean;
-  order: number;
-  trackLessons: TrackLesson[];
-}
+import { ChevronDown, ChevronRight, HelpCircle } from 'lucide-react';
+import { useLessonOutline } from '../hooks/useLessonOutline';
+import { vi } from '../strings/vi';
+import { Skeleton } from './feedback/Skeleton';
 
 interface Props {
   pathSlug: string | null;
   currentLessonSlug: string;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
-
 export default function LessonSidebar({ pathSlug, currentLessonSlug }: Props) {
   const navigate = useNavigate();
-
-  const [tracks, setTracks] = useState<Track[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  // Track nào đang mở — mặc định mở track chứa lesson hiện tại
+  const { data: tracks, isLoading, error } = useLessonOutline(pathSlug);
   const [openTracks, setOpenTracks] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    if (!pathSlug) return;
+    if (!tracks) return;
+    const initial: Record<string, boolean> = {};
+    tracks.forEach((track) => {
+      const hasCurrent = track.trackLessons.some(
+        (tl) => tl.lesson.slug === currentLessonSlug,
+      );
+      initial[track.id] = hasCurrent;
+    });
+    setOpenTracks(initial);
+  }, [tracks, currentLessonSlug]);
 
-    setLoading(true);
-    setError('');
-
-    api
-      .get(`/learning-paths/${pathSlug}/lessons`)
-      .then((res) => {
-        const data: Track[] = res.data.data;
-        setTracks(data);
-
-        // Tự động mở track chứa lesson hiện tại
-        const initial: Record<string, boolean> = {};
-        data.forEach((track) => {
-          const hasCurrent = track.trackLessons.some(
-            (tl) => tl.lesson.slug === currentLessonSlug,
-          );
-          initial[track.id] = hasCurrent;
-        });
-        setOpenTracks(initial);
-      })
-      .catch(() => setError('Không thể tải danh sách bài học.'))
-      .finally(() => setLoading(false));
-  }, [pathSlug, currentLessonSlug]);
-
-  // Toggle mở/đóng track
   function toggleTrack(trackId: string) {
     setOpenTracks((prev) => ({ ...prev, [trackId]: !prev[trackId] }));
   }
 
-  // ── Fallback: không có pathSlug ─────────────────────────────────────────────
   if (!pathSlug) {
     return (
       <div className="p-5">
-        <p className="text-sm text-gray-400 text-center">
-          Chọn lộ trình để xem danh sách bài học
+        <p className="text-sm text-white/50 text-center">
+          {vi.lessonSidebar.noPathSelected}
         </p>
       </div>
     );
   }
 
-  // ── Loading state ───────────────────────────────────────────────────────────
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="p-5">
-        <p className="text-sm text-gray-400">Đang tải...</p>
+      <div className="py-4 px-4 space-y-3 animate-pulse">
+        <Skeleton className="h-3 w-28 mb-3" />
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <Skeleton key={i} className="h-8 w-full" />
+        ))}
       </div>
     );
   }
 
-  // ── Error state ─────────────────────────────────────────────────────────────
   if (error) {
     return (
       <div className="p-5">
-        <p className="text-sm text-red-500">{error}</p>
+        <p className="text-sm text-white/70">{vi.lessonSidebar.loadError}</p>
       </div>
     );
   }
 
-  // ── Main render ─────────────────────────────────────────────────────────────
   return (
     <div className="py-4">
-      {/* Header */}
-      <div className="px-4 pb-3 border-b border-gray-100">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-          Danh sách bài học
+      <div className="px-4 pb-3 border-b border-white/10">
+        <p className="text-xs font-semibold text-white/50 uppercase tracking-wide">
+          {vi.lessonSidebar.title}
         </p>
       </div>
 
-      {/* Tracks */}
       <nav className="mt-2">
-        {tracks.map((track) => {
+        {(tracks ?? []).map((track) => {
           const isOpen = openTracks[track.id] ?? false;
 
           return (
             <div key={track.id} className="mb-1">
-              {/* Track header — collapsible */}
               <button
                 onClick={() => toggleTrack(track.id)}
-                className="w-full flex items-center gap-2 px-4 py-2.5 text-left hover:bg-gray-50 transition-colors"
+                className="w-full flex items-center gap-2 px-4 py-2.5 text-left hover:bg-white/10 transition-colors"
               >
                 {isOpen ? (
-                  <ChevronDown size={14} className="text-gray-400 shrink-0" />
+                  <ChevronDown size={14} className="text-white/50 shrink-0" />
                 ) : (
-                  <ChevronRight size={14} className="text-gray-400 shrink-0" />
+                  <ChevronRight size={14} className="text-white/50 shrink-0" />
                 )}
-                <span className="text-sm font-semibold text-gray-700 truncate flex-1">
+                <span className="text-sm font-semibold text-white truncate flex-1">
                   {track.name}
                 </span>
                 {track.isOptional && (
-                  <span className="text-[10px] font-medium bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full shrink-0">
-                    optional
+                  <span className="text-[10px] font-medium bg-white/20 text-white px-1.5 py-0.5 rounded-full shrink-0">
+                    {vi.lessonSidebar.optional}
                   </span>
                 )}
               </button>
 
-              {/* Lesson list */}
               {isOpen && (
                 <ul className="pb-1">
                   {track.trackLessons.map((tl) => {
@@ -153,16 +106,18 @@ export default function LessonSidebar({ pathSlug, currentLessonSlug }: Props) {
                           }
                           className={`w-full text-left pl-9 pr-4 py-2 text-sm transition-colors ${
                             isCurrent
-                              ? 'bg-blue-50 border-l-4 border-blue-600 text-blue-700 font-medium pl-8'
-                              : 'text-gray-600 hover:bg-gray-50 border-l-4 border-transparent'
+                              ? 'bg-white/20 border-l-4 border-white text-white font-medium pl-8'
+                              : 'text-white/70 hover:bg-white/10 border-l-4 border-transparent'
                           }`}
                         >
                           <span className="flex items-center gap-2">
-                            {/* Status indicator — placeholder cho tương lai */}
-                            <span className="shrink-0">
-                              {isCurrent ? '🔵' : '⚪'}
-                            </span>
+                            <span className="shrink-0">{isCurrent ? '🔵' : '⚪'}</span>
                             <span className="truncate">{tl.lesson.title}</span>
+                            {tl.lesson.quiz && (
+                              <span title={vi.lessonSidebar.hasQuiz}>
+                                <HelpCircle size={13} className="shrink-0 text-cyan-300/70" />
+                              </span>
+                            )}
                           </span>
                         </button>
                       </li>
