@@ -11,10 +11,12 @@ export function useEnroll() {
       const res = await api.post(`/learning-paths/${slug}/enroll`);
       return res.data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-      queryClient.invalidateQueries({ queryKey: ['learning-paths'] });
-      queryClient.invalidateQueries({ queryKey: ['progress'] });
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
+        queryClient.invalidateQueries({ queryKey: ['learning-paths'] }),
+        queryClient.invalidateQueries({ queryKey: ['progress'] }),
+      ]);
     },
     onError: (error) => {
       const status = (error as { response?: { status?: number } })?.response?.status;
