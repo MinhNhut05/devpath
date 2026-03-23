@@ -1,218 +1,211 @@
 # Project Research Summary
 
-**Project:** SOHA TRAVEL Program Summarizer
-**Domain:** Document-to-Design Automation (PDF/DOCX → AI Summarize → Canva)
-**Researched:** 2026-03-22
-**Confidence:** HIGH (stack + architecture), MEDIUM (Canva Connect API — limited production examples)
+**Project:** DevPath Learning v1.1 — Post-MVP Stabilization & Personalization
+**Domain:** AI-assisted personalized learning platform for Vietnamese IT learners
+**Researched:** 2026-03-23
+**Confidence:** HIGH (stack + architecture + pitfalls), MEDIUM (feature prioritization details driven partly by product-pattern inference)
 
 ## Executive Summary
 
-SOHA TRAVEL cần một **internal tool** (~5-20 users) để tự động hóa quy trình: nhận file chương trình tour (PDF/DOCX) → AI tóm tắt + apply formatting rules → tạo Canva design → trả về edit link. Không có direct competitor nào làm đúng use case này — unique value nằm ở việc kết hợp **rule engine theo nghiệp vụ cụ thể của SOHA** với Canva editable output.
+DevPath v1.1 is not a rewrite milestone. It is a post-MVP product-hardening release for an existing React SPA + NestJS monolith that already covers auth, onboarding, learning paths, lessons, quizzes, progress, AI chat, payments, and admin. The research is consistent across all four documents: experts would keep the current stack, stabilize the session and payment foundations first, then layer personalization through a backend-owned learner profile, backend-driven onboarding rounds, and a soft “main path” guidance model rather than hard-gating content.
 
-Stack được recommend là **Next.js 15 (App Router) monolith** chạy trên VPS — đủ mạnh cho scale hiện tại, không cần microservices. Business logic tập trung trong `lib/` (server-side), React UI giao tiếp qua API Routes. Claude API được ưu tiên cho tiếng Việt. Điểm khác biệt kiến trúc quan trọng: **mọi AI và Canva API calls đều chạy server-side** — không bao giờ expose API keys hay tokens ra client.
+The recommended approach is to treat personalization as a data-model and state-consistency problem before treating it as an AI problem. Specifically: stabilize auth refresh; introduce a canonical learner profile aggregate; expand onboarding into resumable backend-driven rounds; separate `mainPath` guidance state from enrollment/access state; then add event-driven notifications and a points ledger for leaderboard features. AI should remain advisory and explainable, not the source of truth for learner state. Frontend changes should stay thin and server-backed, with Vietnamese UX cleanup and critical Frontend-path content coverage handled as release-quality work throughout the milestone.
 
-**Rủi ro lớn nhất:** Canva Connect API có thể yêu cầu approval hoặc Enterprise plan cho private team integrations — nếu không verify ngay từ đầu, toàn bộ Canva integration code viết xong mà không deploy được. Cần build **mock Canva client** từ Phase 1 để pipeline hoạt động độc lập với Canva approval status.
-
----
+The main risks are architectural drift and false trust signals. If session refresh remains unstable, every new protected flow will look broken. If onboarding, dashboard, AI chat, and path recommendations each infer the learner differently, personalization will contradict itself. If payment success is trusted from return URLs instead of verified backend records, real-money state will become unreliable. The mitigation is clear: keep backend APIs as the source of truth, use transactions plus post-commit event publication, make notifications/leaderboard projections idempotent, and only expose personalization when the recommended main path is backed by usable content.
 
 ## Key Findings
 
 ### Recommended Stack
 
-> Chi tiết đầy đủ: [STACK.md](./STACK.md)
-
-Toàn bộ app là **Next.js 15 monolith** — vừa là frontend vừa là backend (API Routes). Không cần backend riêng. Deploy trên VPS (không phải Vercel) để tránh serverless timeout issues khi AI + Canva calls mất 10-30 giây.
+DevPath should continue with the current production stack: NestJS 11 + Prisma 7 + PostgreSQL 16 + Redis 7 on the backend, and React 18 + Vite 6 + TypeScript + Tailwind CSS on the frontend. The research strongly recommends staying inside the existing monolith and extending it with new modules for learner profile, personalization, notifications, leaderboard, and app-internal events rather than introducing microservices, GraphQL, WebSockets, or a frontend framework rewrite.
 
 **Core technologies:**
-- **Next.js 15 (App Router):** Full-stack framework — UI + API Routes trong 1 codebase, Server Actions đơn giản hóa file upload
-- **Prisma 6 + PostgreSQL 16:** ORM type-safe, migrations built-in, JSONB cho rule configs
-- **next-auth 4:** Session auth, credentials provider cho admin-provisioned accounts
-- **pdf-parse + mammoth:** Extract text từ PDF và DOCX (server-side only — dùng Node.js `fs`)
-- **@anthropic-ai/sdk:** Claude API cho AI summarization — tốt hơn cho tiếng Việt, structured output qua `tool_use`
-- **Tailwind CSS 4 + shadcn/ui:** UI nhanh, components copy-paste vào codebase
-- **Zod:** Validate AI output shape, file upload, API request bodies — critical cho reliability
+- **NestJS 11.x:** Backend application framework — preserves module boundaries and supports adding learner-profile, notifications, leaderboard, and payment-hardening services without a rewrite.
+- **Prisma 7.x + PostgreSQL 16.x:** Primary persistence layer — ideal for adding milestone-scoped tables such as learner profile, onboarding rounds, notifications, points ledger, and payment idempotency markers.
+- **Redis 7.x:** Cache/rate-limiting backbone — already fits auth and protected API stability needs; no reason to replace it for v1.1.
+- **React 18 + Vite 6 + TypeScript 5.7:** Existing SPA foundation — supports incremental UX changes without disrupting the deployed architecture.
+- **axios + zustand:** Current transport/session setup — keep them, but harden refresh retry behavior and keep zustand limited to auth/session state.
+- **Tailwind CSS 3.x:** Existing UI system — sufficient for Vietnamese UX cleanup, dashboard prioritization, leaderboard summary, and notification surfaces.
+- **AI gateway via backend only:** AI remains a backend-managed integration — suitable for explainable main-path suggestions and bounded profile-aware chat.
+- **MoMo / VNPay backend-owned integrations:** Payment flow should stay server-side with verified callback/webhook activation and status polling.
 
-**Không dùng:** Zustand (không cần — React Query + useState đủ), socket.io (polling/SSE đủ), Vercel (timeout issues), pdf2json/docx-parser (unmaintained).
-
----
+**Critical version / dependency notes:**
+- No framework rewrites are recommended for v1.1.
+- The only likely new dependency is `@nestjs/event-emitter` (plus `eventemitter2`) for app-internal domain events.
+- Tailwind 4, microservices, GraphQL, Socket.io, and external brokers are explicitly out of scope for this milestone.
 
 ### Expected Features
 
-> Chi tiết đầy đủ: [FEATURES.md](./FEATURES.md)
+The feature research is clear that v1.1 must feel stable and credibly personalized, not merely “more feature rich.” The milestone’s table stakes are the reliability and guidance features users already assume should work in a personalized learning platform. Differentiation comes from explainable, soft guidance and Vietnamese-first polish, not from over-automated AI behavior or social/gamification sprawl.
 
-Tool là internal ops tool — không phải SaaS. Feature scope hẹp và cụ thể theo nghiệp vụ SOHA.
+**Must have (table stakes):**
+- **Auth/session stability across critical flows** — all other protected features depend on this.
+- **Vietnamese UX cleanup on critical screens** — trust drops immediately if core flows feel linguistically broken.
+- **Adaptive 5-round onboarding with persistence/resume** — personalization input must be saved and progressive, not a reset-prone survey.
+- **Canonical learner profile + personalized recommendations** — one backend-owned learner model must drive recommendations consistently.
+- **AI-suggested main path with soft next-step guidance** — users need a recommended journey without losing off-path access.
+- **Main-path-aligned progress and continue-learning cues** — dashboard guidance must match actual state.
+- **Backend-minimum leaderboard (points + rank)** — a tightly scoped gamification loop is enough for v1.1.
+- **In-app notifications for key learning/payment events** — useful event-driven alerts, not a messaging platform.
+- **Secure real payment upgrade flow with auto-activation** — backend verification is required for trust.
+- **Critical Frontend-path content gap fill** — recommendations must not route users into thin content.
 
-**Must have (table stakes — P1):**
-- File upload (PDF + DOCX) với Vietnamese encoding support
-- Text extraction preview — user confirm file đọc đúng trước khi proceed
-- Template selection (4 loại cố định: 1-day tour, 2-day tour, school event, corporate event)
-- AI summarization + formatting rules engine (hardcoded v1)
-- Summarization preview — user review trước khi push lên Canva
-- Canva design creation → return editable link
-- User authentication (admin-provisioned accounts, không có public signup)
-- Generation history (filename, template type, date, Canva link)
-- Error messages rõ ràng theo từng failure point
-
-**Should have (competitive — P2):**
-- Admin rule management panel — team lead tự sửa rules không qua dev
-- Admin template management — update Canva template IDs khi template thay đổi
-- Audience auto-detection — AI detect loại đoàn → suggest đúng template
-- Editable summarization preview — chỉnh nhỏ trước generate để giảm Canva API calls thừa
+**Should have (competitive):**
+- **Hybrid adaptive onboarding over 5 rounds** — better than a static setup form, safer than fully autonomous AI onboarding.
+- **Explainable AI-suggested main path** — recommendation plus rationale builds trust.
+- **Soft guidance model** — preserves learner agency while reducing decision fatigue.
+- **Profile-aware AI chat** — makes AI feel connected to user goals without overpromising.
+- **Event-relevant notifications** — high-signal reminders tied to real learning state.
+- **Vietnamese-first polish in recommendation/payment/error states** — strong local-language UX is a real differentiator here.
 
 **Defer (v2+):**
-- Scanned PDF / OCR support
-- Batch upload
-- Analytics dashboard
-- Email/Slack notification
-
-**Anti-features (đừng build):** Direct PDF export từ app (Canva làm tốt hơn), mobile app, real-time collaboration, public signup, custom template builder trong app, bulk upload.
-
----
+- **Friends/team/social leaderboard** — too much social-graph and moderation scope.
+- **Email/SMS/push notification expansion** — prove in-app usefulness first.
+- **Fully dynamic AI curriculum re-planning** — too unstable and hard to debug for v1.1.
+- **Broad content expansion across all tracks** — this milestone only needs to close critical main-path content gaps.
+- **Hard-gated learning paths** — conflicts with the chosen soft-guidance product direction.
 
 ### Architecture Approach
 
-> Chi tiết đầy đủ: [ARCHITECTURE.md](./ARCHITECTURE.md)
-
-Architecture theo kiểu **layered monolith**: React UI → Next.js API Routes → Service Layer (`lib/`) → Prisma + PostgreSQL → External APIs (Claude + Canva). Mỗi tầng có responsibility rõ ràng — API Routes chỉ là thin orchestrator, business logic nằm trong `lib/`.
-
-**Generation pipeline (core flow):**
-1. `POST /api/upload` → `fileParser` extract text từ PDF/DOCX → trả về `rawText`
-2. Browser hiện text preview, user confirm
-3. `POST /api/generate` → `aiSummarizer` call Claude → `rulesEngine` apply rules (greeting, columns, school name) → `canvaClient` duplicate template + autofill → save to DB
-4. Browser nhận `editUrl` → hiện "Open in Canva" button
+The architecture research recommends a milestone-scoped evolution of the current monolith. Keep frontend pages thin, keep backend APIs authoritative, and add a small set of new backend boundaries: `learner-profile`, `personalization`, `notifications`, `leaderboard`, and `events`. The most important architectural moves are: (1) create a canonical learner profile aggregate, (2) separate `mainPath` guidance from enrollment/access state, and (3) use transaction-first writes plus post-commit event publication so notifications and leaderboard remain projections rather than source-of-truth business logic.
 
 **Major components:**
-1. **`lib/parser.ts`** — pdf-parse + mammoth, server-side only, trả về plain text
-2. **`lib/ai/summarizer.ts`** — Claude API call với structured output, Zod validation, extract-only prompt
-3. **`lib/rules/engine.ts`** — apply SOHA-specific formatting rules (load từ DB hoặc hardcoded v1)
-4. **`lib/canva/client.ts`** — OAuth2 token management, duplicate template, autofill, return edit URL
-5. **`lib/canva/elementMap.ts`** — constants cho Canva element names theo từng template (single source of truth)
-
-**State management:** React Query cho server state (upload, generate, history) + `useState` cho client state (file selection, template type, current step). Không cần Zustand.
-
----
+1. **Learner Profile service/module** — owns the canonical learner aggregate derived from onboarding answers, progress, quiz behavior, and bounded AI context.
+2. **Personalization / Main Path policy service** — produces explainable path suggestions, stores soft-guidance state, and keeps recommendation logic out of learning-path enrollment.
+3. **Expanded Onboarding module** — drives round progression, resume state, and path-confirmation entrypoints from the backend.
+4. **Notifications module** — projects high-signal domain events into in-app notification rows with read/unread state and dedupe rules.
+5. **Leaderboard module** — consumes point-worthy events into an idempotent ledger and rank projection.
+6. **Payment activation service under subscriptions** — makes callback/webhook activation idempotent and backend-authoritative.
+7. **Frontend app shell/pages** — consume canonical backend state for onboarding, dashboard, payment result, notifications, and leaderboard summary.
 
 ### Critical Pitfalls
 
-> Chi tiết đầy đủ: [PITFALLS.md](./PITFALLS.md)
+The pitfalls research is unusually actionable and aligns tightly with the architecture/build-order recommendations. These are the failure modes most likely to derail the milestone if sequencing is wrong.
 
-1. **Canva API production access** — Verify Canva developer account và app approval status TRƯỚC KHI viết integration code. Build `lib/canva/mockClient.ts` ngay từ đầu để pipeline hoạt động khi Canva chưa approved. Nếu thấy `403/401` dù token hợp lệ = app vẫn đang ở development mode.
-
-2. **Canva autofill silent failure** — API trả về `200 OK` nhưng design trống nếu element names không khớp chính xác (case-sensitive, space-sensitive). Giải pháp: mở từng Canva template, note exact element names, lưu vào `lib/canva/elementMap.ts`. Test autofill với 1 field trước.
-
-3. **Canva OAuth token expiry** — Access token expire sau 1-2 giờ. Implement `getValidCanvaToken()` wrapper kiểm tra expiry trước mọi Canva API call, proactively refresh khi còn < 5 phút. Build từ đầu, không hotfix sau.
-
-4. **Vietnamese PDF encoding / scanned PDFs** — `pdf-parse` trả về garbled text hoặc empty string với nhiều PDF tiếng Việt. Sau khi extract: kiểm tra text length + có Unicode Vietnamese chars không. Nếu fail → error rõ ràng: *"File PDF không đọc được. Vui lòng dùng DOCX."* Không proceed với text rỗng/sai vào AI (tốn credits, output vô nghĩa).
-
-5. **AI inconsistent output format** — LLM đôi khi wrap JSON trong markdown hoặc thêm preamble text → `JSON.parse()` crash. Giải pháp: dùng Claude `tool_use` (forced structured output) + Zod schema validation. Không dùng raw `JSON.parse()`.
-
-6. **AI hallucination** — LLM thêm chi tiết không có trong file gốc. Giải pháp: prompt phải nói rõ *"Extract only, do NOT invent"* + summarization preview là safeguard quan trọng nhất. Greeting/labels đến từ rules engine, KHÔNG từ LLM.
-
-7. **File size / timeout** — AI + Canva calls có thể mất 20-40s. Trên Vercel Hobby: timeout 10s = chắc chắn fail. Giải pháp: **Deploy VPS** (không có serverless timeout). Limit file size 10MB. Hiện progress indicator step-by-step.
-
----
+1. **Auth refresh storms and session split-brain** — prevent with single-flight refresh logic, replay queuing, and explicit `refreshing` vs `authenticated` UI states.
+2. **Adaptive onboarding becoming a long survey with no resume state** — prevent with backend-driven rounds, per-round persistence/versioning, and showing value early.
+3. **Scattered learner profile state across modules** — prevent with a backend-owned canonical profile aggregate and one recompute boundary.
+4. **Confusing main path, recommendation, and enrollment state** — prevent by separating guidance state from access state and requiring explicit confirm/switch behavior.
+5. **Notifications becoming spam instead of help** — prevent by projecting only a narrow, event-driven notification set with dedupe and suppression rules.
+6. **Duplicate points / duplicate notifications from retries** — prevent with stable idempotency keys, immutable ledger rows, and deduped consumers.
+7. **Trusting payment return URLs or non-terminal states as upgrade proof** — prevent by activating only from verified backend records and making `PaymentResult` poll backend order status.
 
 ## Implications for Roadmap
 
-Dựa trên research, suggested build order theo 6 phases:
+Based on the combined research, DevPath v1.1 should be planned as a dependency-first roadmap. Do not group work by “screen”; group it by state authority. The milestone should progress from transport reliability, to canonical learner state, to guided personalization, then to event-driven engagement, and finally to payment hardening and release polish.
 
-### Phase 1: Foundation
-**Rationale:** Auth + DB phải có trước mọi thứ khác. Quan trọng hơn: verify Canva API access ngay phase này — nếu Canva không approved thì biết sớm để build mock.
-**Delivers:** Next.js setup, Prisma schema + migrations, next-auth login, protected routes, mock Canva client
-**Addresses:** User authentication (P1 feature)
-**Avoids:** Pitfall #1 — Canva API enterprise/approval requirement
+### Phase 1: Session Reliability and UX Baseline
+**Rationale:** Every milestone feature is protected or session-aware. If auth refresh is unstable, onboarding persistence, notifications, payment results, and dashboard guidance will all appear broken.
+**Delivers:** Single-flight refresh logic, protected-route bootstrap cleanup, stale auth-state fixes, core Vietnamese copy cleanup on auth/onboarding/dashboard/payment surfaces, and a reliable app-shell session state model.
+**Addresses:** Auth/session stabilization, Vietnamese UX cleanup.
+**Avoids:** Auth refresh storms, session split-brain, page-level hacks that mask transport bugs.
 
-### Phase 2: File Parsing
-**Rationale:** File upload + text extraction là entry point của toàn bộ pipeline. Không có text thì không có gì để summarize.
-**Delivers:** `/api/upload`, pdf-parse + mammoth integration, Vietnamese encoding validation, text preview UI
-**Uses:** pdf-parse, mammoth, react-dropzone, FileDropzone component
-**Avoids:** Pitfall #4 — Vietnamese PDF encoding và scanned files
+### Phase 2: Canonical Learner Profile Foundation
+**Rationale:** Personalization should not start in the UI or in AI prompts. It needs one backend-owned learner profile before adaptive onboarding or recommendation logic expands.
+**Delivers:** Learner profile table/service, normalized profile fields plus JSON snapshot, recompute pipeline from onboarding/progress/quiz data, profile summary read API.
+**Uses:** Existing NestJS monolith, Prisma/PostgreSQL, current onboarding/progress/AI data sources.
+**Implements:** Canonical learner profile pattern.
+**Avoids:** Profile split-brain across onboarding, dashboard, explore, and AI chat.
 
-### Phase 3: AI Engine
-**Rationale:** Summarization là core value. Cần hoạt động tốt (structured output, Zod validation, anti-hallucination prompt) trước khi gắn Canva.
-**Delivers:** `lib/ai/summarizer.ts`, prompt templates, `lib/rules/engine.ts` (hardcoded v1), summarization preview UI
-**Uses:** @anthropic-ai/sdk, zod, Claude `tool_use` structured output
-**Avoids:** Pitfall #5 (inconsistent output format), Pitfall #6 (hallucination)
+### Phase 3: Adaptive Onboarding and Resume Flow
+**Rationale:** Once canonical profile storage exists, onboarding can become backend-driven instead of a fragile frontend wizard.
+**Delivers:** 5-round bounded onboarding, per-round persistence/versioning, resume support, backend-driven round policy, early recommendation checkpoint, Vietnamese-first explanatory copy.
+**Addresses:** Adaptive onboarding with saved context, initial personalization input pipeline.
+**Avoids:** Long-survey onboarding, repeated questions after refresh, frontend condition-tree drift.
 
-### Phase 4: Canva Integration
-**Rationale:** Canva integration phụ thuộc vào Phase 3 output. Cần real Canva API access hoặc mock client. Đây là phase rủi ro cao nhất.
-**Delivers:** `lib/canva/client.ts`, OAuth2 token management với auto-refresh, autofill payload builder, `elementMap.ts`, generation history save, "Open in Canva" button
-**Uses:** axios, Canva Connect API, PostgreSQL (store tokens encrypted)
-**Avoids:** Pitfall #2 (element name mismatch), Pitfall #3 (token expiry), Pitfall #7 (timeout — test với VPS)
+### Phase 4: Main Path Personalization and Content Credibility
+**Rationale:** Recommendation should become visible only when guidance semantics are explicit and the primary Frontend journey is actually usable. This is where product clarity matters most.
+**Delivers:** AI-suggested main path with explanation, explicit confirm/switch behavior, dashboard main-path CTA, explore separation between main and secondary paths, progress alignment, critical Frontend content gap fill for the recommended path.
+**Addresses:** Main-path designation, personalized recommendations, main-path-aligned progress, profile-aware AI chat inputs, critical content gap fill.
+**Uses:** Learner profile aggregate, personalization service, learning-path catalog, existing AI gateway.
+**Implements:** Soft main-path policy.
+**Avoids:** Hard-locking, silent path switching, contradictory next-step guidance, recommendations into weak content.
 
-### Phase 5: Admin Panels
-**Rationale:** Admin UI không block v1 launch nhưng nên build sớm vì rules cần update thường xuyên. Hardcoded rules từ Phase 3 → move sang DB.
-**Delivers:** Rule CRUD API + UI, template ID management UI, admin route protection
-**Addresses:** Admin rule management (P2), admin template management (P2)
-**Avoids:** Technical debt — hardcoded rules yêu cầu redeploy mỗi khi update
+### Phase 5: Domain Events and Notification Skeleton
+**Rationale:** Notifications should be projections of meaningful state changes, not UI side effects. Build the event backbone before adding more engagement features.
+**Delivers:** App-internal event contracts/publisher, post-commit event emission from onboarding/progress/subscriptions, notification table/API, unread count, narrow event set (`path.confirmed`, `lesson.completed`, `quiz.passed`, `subscription.activated`, `subscription.expiring`).
+**Addresses:** In-app learning notifications.
+**Uses:** NestJS monolith, likely `@nestjs/event-emitter`, Prisma notification persistence.
+**Implements:** Transaction + post-commit event pattern.
+**Avoids:** Notification spam, duplicated notifications, controllers creating ad hoc messages.
 
-### Phase 6: Polish + Validation
-**Rationale:** Test với real SOHA TRAVEL files, fix edge cases, production readiness.
-**Delivers:** Step-by-step progress indicators, specific error messages per failure point, "Looks Done But Isn't" checklist completion, production deployment
-**Uses:** SSE hoặc client polling cho progress, VPS deployment với PM2
+### Phase 6: Leaderboard Basics with Anti-Gaming Rules
+**Rationale:** Leaderboard depends on clean event inputs and idempotent scoring. Build it only after the event model is trustworthy.
+**Delivers:** Points ledger, rank projection, summary API/UI, transparent scoring rules, caps/dedupe for repeatable low-value actions.
+**Addresses:** Backend-minimum leaderboard (points + rank).
+**Uses:** Event consumers, ledger/projection tables, dashboard summary UI.
+**Implements:** Projection architecture instead of inline score mutation.
+**Avoids:** Duplicate points, rank volatility, rewarding grinding instead of learning.
 
----
+### Phase 7: Payment Hardening and Release Validation
+**Rationale:** Real-money correctness must ship before wider release, but should leverage the notification/event backbone and stable session model already in place.
+**Delivers:** Backend-owned payment config hardening, idempotent webhook/callback activation, payment status query endpoint, `PaymentResult` polling/pending states, activation notifications, reconciliation/admin visibility, final Vietnamese UX consistency pass and end-to-end release checks.
+**Addresses:** Secure real payment upgrade flow with auto-activation.
+**Uses:** Existing subscriptions module, Prisma transactions, payment logs, notification events.
+**Implements:** Verified backend activation flow.
+**Avoids:** False payment success, duplicate activation, frontend trust of URL params, trust loss in paid conversion.
 
 ### Phase Ordering Rationale
 
-- **Foundation trước** vì auth guard bảo vệ tất cả routes, Prisma schema define data models cho toàn bộ app, và Canva verification cần happen sớm nhất.
-- **File Parsing trước AI Engine** vì AI cần text input — không thể test AI mà không có text.
-- **AI Engine trước Canva** vì Canva autofill cần `finalContent` từ rules engine — phải define interface trước khi build Canva integration.
-- **Admin Panels sau core pipeline** vì rules có thể hardcode v1, nhưng không nên defer quá lâu vì rules cần cập nhật thường xuyên.
-- **Polish cuối** — chỉ khi pipeline đầu đủ mới biết edge cases nào cần handle.
+- **Reliability before personalization:** auth/session stability is a hard prerequisite for every protected flow.
+- **Canonical state before adaptive UX:** learner profile must exist before onboarding rounds and recommendations can be trustworthy.
+- **Guidance before engagement projections:** main-path semantics should be stable before notifications and leaderboard consume milestone events.
+- **Events before gamification:** leaderboard and notifications both depend on clean post-commit event contracts and idempotency.
+- **Payment hardening after core event plumbing:** verified activation benefits from the same transaction and event discipline used elsewhere.
+- **Vietnamese UX and content quality are release criteria, not a final optional polish task:** they should be checked within every phase, with a final consistency pass before rollout.
 
 ### Research Flags
 
-Phases cần attention đặc biệt trong planning:
-- **Phase 4 (Canva Integration):** Confidence MEDIUM — ít real-world examples với Canva Connect API autofill. Cần verify element naming convention với actual templates trước khi write code. Canva approval timeline không predictable.
-- **Phase 3 (AI Engine):** Cần test prompt với actual SOHA TRAVEL tour programs để validate Vietnamese quality và output length fit Canva template.
+Phases likely needing deeper research during planning:
+- **Phase 4: Main Path Personalization and Content Credibility** — needs targeted validation on recommendation policy, confidence thresholds, and exactly which Frontend content gaps block safe recommendation rollout.
+- **Phase 6: Leaderboard Basics with Anti-Gaming Rules** — needs explicit scoring policy review so points reflect learning outcomes rather than repeatable easy actions.
+- **Phase 7: Payment Hardening and Release Validation** — needs provider-specific callback/idempotency verification and reconciliation flow review before release.
 
-Phases với standard patterns (ít rủi ro):
-- **Phase 1 (Foundation):** Next.js + Prisma + next-auth là well-documented patterns.
-- **Phase 2 (File Parsing):** pdf-parse + mammoth là straightforward, chỉ cần test với Vietnamese files thực.
-- **Phase 5 (Admin Panels):** Standard CRUD — predictable implementation.
-
----
+Phases with standard patterns (skip research-phase):
+- **Phase 1: Session Reliability and UX Baseline** — established auth transport and protected-route hardening patterns.
+- **Phase 2: Canonical Learner Profile Foundation** — straightforward monolith + Prisma aggregate pattern with clear architectural guidance.
+- **Phase 3: Adaptive Onboarding and Resume Flow** — well-bounded once backend owns rounds and persistence.
+- **Phase 5: Domain Events and Notification Skeleton** — standard in-process event projection pattern for a monolith.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Next.js/Prisma/Claude đều là well-documented, widely-used. Compatibility verified. |
-| Features | HIGH | Feature scope rõ ràng từ PROJECT.md. Internal tool nên không cần competitor validation nhiều. |
-| Architecture | HIGH | Layered monolith pattern standard cho Next.js. Generation pipeline logic straightforward. |
-| Canva Integration | MEDIUM | Official docs rõ, nhưng ít public production examples với autofill API. Approval process unclear. |
-| Vietnamese PDF Parsing | MEDIUM | Known issues với pdf-parse documented, nhưng cần test với actual SOHA files để confirm. |
+| Stack | HIGH | Based on the actual MVP codebase and installed dependencies already in production use. |
+| Features | MEDIUM | Feature direction is coherent and strongly aligned with product goals, but parts of prioritization/differentiation are informed by adjacent learning-product patterns rather than hard external validation. |
+| Architecture | HIGH | The recommended architecture is tightly grounded in the current monolith, existing modules, and well-understood transaction/projection patterns. |
+| Pitfalls | HIGH | Pitfalls are concrete, phase-mapped, and reinforced by both the architecture and official guidance around transactions, idempotency, and backend authority. |
 
-**Overall confidence:** HIGH (với caveat: Canva API access phải verify sớm)
+**Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **Canva app approval timeline:** Không biết mất bao lâu. Mitigation: mock client + build Phase 1-3 trước, đừng block pipeline vì Canva.
-- **Actual Canva template element names:** Phải mở templates và document element names thực trước Phase 4. Research hiện tại chỉ có example names, không phải tên thật.
-- **Vietnamese PDF sample testing:** Cần test với ít nhất 5 real SOHA TRAVEL PDF files trong Phase 2 để validate encoding handling.
-- **Claude token usage for Vietnamese:** Vietnamese dùng nhiều tokens hơn English. Cần estimate cost với real tour program files (4 trang ≈ bao nhiêu tokens?).
-
----
+- **Recommendation policy specifics:** define how AI suggestion, fallback rules, and manual user choice interact so main-path switching is predictable.
+- **Frontend content readiness for the recommended path:** identify the minimum content checklist required before surfacing a Frontend main-path recommendation broadly.
+- **Leaderboard scoring rules:** document exactly which events earn points, caps for retries/repeats, and what should remain score-neutral.
+- **Payment-provider edge cases:** validate MoMo/VNPay retry semantics, non-terminal statuses, and reconciliation/admin workflows against the current implementation.
+- **Notification relevance thresholds:** confirm which event types are truly high-signal enough for v1.1 instead of assuming all milestone events deserve notifications.
+- **Vietnamese UX terminology baseline:** establish a shared terminology/copy review standard so wording does not regress screen by screen.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- Next.js 15 official docs (nextjs.org) — App Router, Route Handlers, FormData handling, `maxDuration` config
-- Canva Connect API docs (canva.dev) — OAuth2 flow, autofill API reference, app distribution requirements
-- Anthropic SDK docs (docs.anthropic.com) — `tool_use` structured output, token counting for Vietnamese
-- Prisma docs (prisma.io) — PostgreSQL setup, connection pooling singleton pattern
+- `/home/minhnhut_dev/projects/path-learn/.planning/research/STACK.md` — verified current stack, versions, and v1.1-compatible additions.
+- `/home/minhnhut_dev/projects/path-learn/.planning/research/FEATURES.md` — milestone feature landscape, dependencies, anti-features, and prioritization.
+- `/home/minhnhut_dev/projects/path-learn/.planning/research/ARCHITECTURE.md` — monolith evolution strategy, build order, component boundaries, and data model adjustments.
+- `/home/minhnhut_dev/projects/path-learn/.planning/research/PITFALLS.md` — phase-mapped failure modes, idempotency guidance, and release validation checklist.
+- `/home/minhnhut_dev/projects/path-learn/.planning/PROJECT.md` — milestone scope and constraints referenced by all research files.
+- NestJS docs (https://docs.nestjs.com) — modules, scheduling, and event-driven application patterns.
+- Prisma docs (https://www.prisma.io/docs/orm) — transactions, JSON fields, and schema evolution patterns.
+- React Router docs (https://reactrouter.com) and Vite docs (https://vite.dev) — SPA routing and frontend stack compatibility.
 
 ### Secondary (MEDIUM confidence)
-- next-auth docs (next-auth.js.org) — App Router credentials provider setup
-- npm: pdf-parse, mammoth — README và known issues với Vietnamese encoding
-- Canva developer community forum — reports của autofill silent failures on element name mismatch
+- Adjacent learning-product patterns cited in feature research (Duolingo, Khan Academy, Coursera, Canvas, Codecademy) — useful for framing user expectations and milestone trade-offs, but not direct implementation requirements.
+- Payment/notification idempotency references cited in pitfalls research — reinforce best practices for retries, dedupe, and backend authority.
 
-### Tertiary (LOW confidence — cần validate)
-- Adjacent tool comparisons (Beautiful.ai, SlidesAI.io, Docupilot, Gamma.app) — feature landscape analysis
-- Community reports về Canva private integration plan requirements — chưa verified với SOHA's current Canva plan
+### Tertiary (LOW confidence)
+- None material beyond the adjacent-pattern framing already called out as medium confidence.
 
 ---
-
-*Research completed: 2026-03-22*
+*Research completed: 2026-03-23*
 *Ready for roadmap: yes*
