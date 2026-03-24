@@ -41,6 +41,21 @@ export class LearningPathsController {
     return this.learningPathsService.listPaths();
   }
 
+  // ── GET /api/v1/learning-paths/my-enrollments ──────────────────────────
+
+  /**
+   * Trả về danh sách slug các learning paths mà user hiện tại đã enroll.
+   * Protected endpoint — cần JWT auth.
+   * Explore page dùng để render enrollment status từ server data thay vì local state.
+   *
+   * Response: { success: true, data: ["frontend-developer", "backend-developer"] }
+   */
+  @Get('my-enrollments')
+  @UseGuards(JwtAuthGuard)
+  async getMyEnrollments(@CurrentUser('id') userId: string) {
+    return this.learningPathsService.getMyEnrollments(userId);
+  }
+
   // ── GET /api/v1/learning-paths/:slug ────────────────────────────────────
 
   /**
