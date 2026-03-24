@@ -114,6 +114,9 @@ export const vi = {
     badgeFirstStepDesc: 'Hoàn thành bài học đầu tiên',
     badgeSevenDayStreakDesc: 'Streak 7 ngày',
     badgeQuizMasterDesc: 'Đạt 100% quiz',
+    badgeFirstStepName: 'Bước đầu tiên',
+    badgeSevenDayStreakName: 'Streak 7 ngày',
+    badgeQuizMasterName: 'Bậc thầy Quiz',
   },
 
   // ── Explore ──────────────────────────────────────────────────────
@@ -147,6 +150,11 @@ export const vi = {
     backToDashboard: 'Quay về trang tổng quan',
     takeQuiz: 'Làm Quiz',
     explorePathsCta: 'Khám phá lộ trình',
+    resourceDocs: 'Tài liệu',
+    resourceVideo: 'Video',
+    resourceTutorial: 'Hướng dẫn',
+    resourceCourse: 'Khóa học',
+    resourceInteractive: 'Tương tác',
   },
 
   // ── Lesson Sidebar ───────────────────────────────────────────────
