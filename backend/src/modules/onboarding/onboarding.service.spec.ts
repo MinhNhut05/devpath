@@ -20,14 +20,18 @@ const mockSubmitAnswersDto = {
   hoursPerWeek: 10,
 };
 
-const mockOnboardingData = {
-  id: 'onboarding-uuid-111',
+const mockOnboardingRound = {
+  id: 'round-uuid-111',
   userId: mockUserId,
-  careerGoal: CareerGoal.FRONTEND,
-  priorKnowledge: ['html', 'css', 'javascript'],
-  learningBackground: LearningBackground.SELF_TAUGHT,
-  hoursPerWeek: 10,
+  roundNumber: 1,
+  answers: {
+    careerGoal: CareerGoal.FRONTEND,
+    priorKnowledge: ['html', 'css', 'javascript'],
+    learningBackground: LearningBackground.SELF_TAUGHT,
+    hoursPerWeek: 10,
+  },
   completedAt: new Date('2026-03-14T10:00:00.000Z'),
+  createdAt: new Date('2026-03-14T10:00:00.000Z'),
 };
 
 const mockLearningPath = {
@@ -90,7 +94,7 @@ describe('OnboardingService', () => {
     };
 
     prisma = {
-      onboardingData: {
+      onboardingRound: {
         findUnique: jest.fn(),
         create: jest.fn(),
       },
@@ -141,103 +145,135 @@ describe('OnboardingService', () => {
 
   describe('getRecommendation', () => {
     it('should return AI recommendation when AI responds with valid JSON', async () => {
-      // Happy path: AI trả về JSON hợp lệ → source: 'ai'
-      // Test này đảm bảo service thực sự gọi AI và dùng kết quả khi thành công
-      prisma.onboardingData.findUnique.mockResolvedValue(mockOnboardingData);
+      // Happy path: AI responds with valid JSON → source: 'ai'
+      // Round 1 answers are read from OnboardingRound.answers
+      prisma.onboardingRound.findUnique.mockResolvedValue(mockOnboardingRound);
       aiService.chat.mockResolvedValue(JSON.stringify({
         primaryPath: 'frontend-developer',
         alternativePaths: [],
-        reason: 'Dựa trên mục tiêu Frontend của bạn.',
+        reason: 'Based on your Frontend goal.',
         focusAreas: ['HTML & CSS fundamentals', 'JavaScript ES6+'],
-        tips: ['Học đều đặn mỗi ngày.'],
+        tips: ['Study consistently every day.'],
       }));
 
       const result = await service.getRecommendation(mockUserId);
 
-      expect(prisma.onboardingData.findUnique).toHaveBeenCalledWith({
-        where: { userId: mockUserId },
+      expect(prisma.onboardingRound.findUnique).toHaveBeenCalledWith({
+        where: { userId_roundNumber: { userId: mockUserId, roundNumber: 1 } },
       });
       expect(aiService.chat).toHaveBeenCalledTimes(1);
-      // AI path: source phải là 'ai'
       expect(result.source).toBe('ai');
       expect(result.primaryPath).toBe('frontend-developer');
     });
 
-    it('should throw NotFoundException when user has not submitted onboarding', async () => {
-      // Test 404 để đảm bảo user phải submit trước khi lấy recommendation
-      prisma.onboardingData.findUnique.mockResolvedValue(null);
+    it('should throw NotFoundException when user has no completed round 1', async () => {
+      // Test 4: no onboarding round 1 still throws NotFoundException
+      prisma.onboardingRound.findUnique.mockResolvedValue(null);
 
       const promise = service.getRecommendation(mockUserId);
 
       await expect(promise).rejects.toThrow(NotFoundException);
       await expect(promise).rejects.toMatchObject({ status: 404 });
-      // AI không được gọi nếu user chưa submit
       expect(aiService.chat).not.toHaveBeenCalled();
     });
 
     it('should return fallback recommendation when AI network error occurs', async () => {
-      // Test fallback khi AI timeout/network error
-      // Đảm bảo user không bị kẹt dù AI có vấn đề
-      prisma.onboardingData.findUnique.mockResolvedValue(mockOnboardingData);
+      // Test fallback when AI timeout/network error
+      prisma.onboardingRound.findUnique.mockResolvedValue(mockOnboardingRound);
       aiService.chat.mockRejectedValue(new Error('AI API timeout after 30000ms'));
 
       const result = await service.getRecommendation(mockUserId);
 
       expect(aiService.chat).toHaveBeenCalledTimes(1);
-      // Fallback path: source phải là 'fallback'
       expect(result.source).toBe('fallback');
-      // Fallback dùng CAREER_GOAL_TO_SLUG[FRONTEND] = 'frontend-developer'
       expect(result.primaryPath).toBe('frontend-developer');
     });
 
     it('should return fallback recommendation when AI returns invalid JSON', async () => {
-      // Test fallback khi AI trả về format sai (parser return null)
-      // Đây là trường hợp AI respond nhưng không đúng format JSON mong đợi
-      prisma.onboardingData.findUnique.mockResolvedValue(mockOnboardingData);
+      // Test fallback when AI returns bad format (parser returns null)
+      prisma.onboardingRound.findUnique.mockResolvedValue(mockOnboardingRound);
       aiService.chat.mockResolvedValue('Sorry, I cannot provide a recommendation in JSON format.');
 
       const result = await service.getRecommendation(mockUserId);
 
       expect(aiService.chat).toHaveBeenCalledTimes(1);
-      // Parser trả về null → fallback được dùng
       expect(result.source).toBe('fallback');
       expect(result.primaryPath).toBe('frontend-developer');
+    });
+
+    it('should reconstruct OnboardingDataInput from round-1 answers', async () => {
+      // Test 3: getRecommendation reads round-1 answers and reconstructs OnboardingDataInput
+      prisma.onboardingRound.findUnique.mockResolvedValue(mockOnboardingRound);
+      aiService.chat.mockResolvedValue(JSON.stringify({
+        primaryPath: 'frontend-developer',
+        alternativePaths: [],
+        reason: 'Test',
+        focusAreas: ['Test'],
+        tips: ['Test'],
+      }));
+
+      await service.getRecommendation(mockUserId);
+
+      // Verify AI was called, which means the input was successfully constructed
+      expect(aiService.chat).toHaveBeenCalledTimes(1);
+      // Verify the round-1 lookup uses the compound key
+      expect(prisma.onboardingRound.findUnique).toHaveBeenCalledWith({
+        where: { userId_roundNumber: { userId: mockUserId, roundNumber: 1 } },
+      });
     });
   });
 
   // ─── submitAnswers ───────────────────────────────────────────────────────
   describe('submitAnswers', () => {
-    it('should create and return onboarding data when user submits answers for the first time', async () => {
-      // Test happy path để đảm bảo service lưu onboarding answers đúng vào DB.
-      prisma.onboardingData.findUnique.mockResolvedValue(null);
-      prisma.onboardingData.create.mockResolvedValue(mockOnboardingData);
+    it('should create OnboardingRound with roundNumber: 1 and answers JSON', async () => {
+      // Test 1: submitAnswers creates OnboardingRound with round 1 answers
+      prisma.onboardingRound.findUnique.mockResolvedValue(null);
+      prisma.onboardingRound.create.mockResolvedValue(mockOnboardingRound);
 
       const result = await service.submitAnswers(mockUserId, mockSubmitAnswersDto);
 
-      expect(prisma.onboardingData.findUnique).toHaveBeenCalledWith({
-        where: { userId: mockUserId },
+      expect(prisma.onboardingRound.findUnique).toHaveBeenCalledWith({
+        where: { userId_roundNumber: { userId: mockUserId, roundNumber: 1 } },
       });
-      expect(prisma.onboardingData.create).toHaveBeenCalledWith({
+      expect(prisma.onboardingRound.create).toHaveBeenCalledWith({
         data: {
           userId: mockUserId,
-          careerGoal: mockSubmitAnswersDto.careerGoal,
-          priorKnowledge: mockSubmitAnswersDto.priorKnowledge,
-          learningBackground: mockSubmitAnswersDto.learningBackground,
-          hoursPerWeek: mockSubmitAnswersDto.hoursPerWeek,
+          roundNumber: 1,
+          answers: {
+            careerGoal: mockSubmitAnswersDto.careerGoal,
+            priorKnowledge: mockSubmitAnswersDto.priorKnowledge,
+            learningBackground: mockSubmitAnswersDto.learningBackground,
+            hoursPerWeek: mockSubmitAnswersDto.hoursPerWeek,
+          },
+          completedAt: expect.any(Date),
         },
       });
-      expect(result).toEqual(mockOnboardingData);
+      expect(result).toEqual(mockOnboardingRound);
     });
 
-    it('should throw ConflictException when onboarding data already exists', async () => {
-      // Test duplicate để tránh user submit onboarding nhiều lần.
-      prisma.onboardingData.findUnique.mockResolvedValue(mockOnboardingData);
+    it('should throw ConflictException when round 1 already exists', async () => {
+      // Test 2: duplicate round-1 submission throws ConflictException
+      prisma.onboardingRound.findUnique.mockResolvedValue(mockOnboardingRound);
 
       const promise = service.submitAnswers(mockUserId, mockSubmitAnswersDto);
 
       await expect(promise).rejects.toThrow(ConflictException);
       await expect(promise).rejects.toMatchObject({ status: 409 });
-      expect(prisma.onboardingData.create).not.toHaveBeenCalled();
+      expect(prisma.onboardingRound.create).not.toHaveBeenCalled();
+    });
+
+    it('should store answers with exact keys: careerGoal, priorKnowledge, learningBackground, hoursPerWeek', async () => {
+      // Verify round-1 JSON payload keys exactly match
+      prisma.onboardingRound.findUnique.mockResolvedValue(null);
+      prisma.onboardingRound.create.mockResolvedValue(mockOnboardingRound);
+
+      await service.submitAnswers(mockUserId, mockSubmitAnswersDto);
+
+      const createCall = prisma.onboardingRound.create.mock.calls[0][0];
+      const answers = createCall.data.answers;
+      expect(Object.keys(answers).sort()).toEqual(
+        ['careerGoal', 'hoursPerWeek', 'learningBackground', 'priorKnowledge'],
+      );
     });
   });
 
@@ -245,7 +281,6 @@ describe('OnboardingService', () => {
 
   describe('confirmPath', () => {
     it('should create user learning path with currentLessonId set to the first lesson', async () => {
-      // Test happy path để đảm bảo enroll path đúng và set bài học đầu tiên chính xác.
       prisma.learningPath.findFirst.mockResolvedValue(mockLearningPath);
       prisma.userLearningPath.findUnique.mockResolvedValue(null);
       prisma.track.findFirst.mockResolvedValue(mockTrack);
@@ -288,7 +323,6 @@ describe('OnboardingService', () => {
     });
 
     it('should throw NotFoundException when learning path is missing or not published', async () => {
-      // Test 404 để không expose path không tồn tại hoặc chưa publish.
       prisma.learningPath.findFirst.mockResolvedValue(null);
 
       const promise = service.confirmPath(mockUserId, mockDto);
@@ -301,7 +335,6 @@ describe('OnboardingService', () => {
     });
 
     it('should throw ConflictException when user is already enrolled in the learning path', async () => {
-      // Test duplicate enrollment để tránh tạo 2 record cùng userId + learningPathId.
       prisma.learningPath.findFirst.mockResolvedValue(mockLearningPath);
       prisma.userLearningPath.findUnique.mockResolvedValue(mockUserLearningPath);
 
@@ -315,7 +348,6 @@ describe('OnboardingService', () => {
     });
 
     it('should throw UnprocessableEntityException when learning path has no tracks', async () => {
-      // Test 422 vì path hợp lệ nhưng data bên trong chưa đủ để xử lý enrollment.
       prisma.learningPath.findFirst.mockResolvedValue(mockLearningPath);
       prisma.userLearningPath.findUnique.mockResolvedValue(null);
       prisma.track.findFirst.mockResolvedValue(null);
@@ -329,7 +361,6 @@ describe('OnboardingService', () => {
     });
 
     it('should throw UnprocessableEntityException when first track has no lessons', async () => {
-      // Test 422 để đảm bảo system không enroll user vào path bị thiếu lesson đầu tiên.
       prisma.learningPath.findFirst.mockResolvedValue(mockLearningPath);
       prisma.userLearningPath.findUnique.mockResolvedValue(null);
       prisma.track.findFirst.mockResolvedValue(mockTrack);
