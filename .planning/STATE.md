@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: unknown
-stopped_at: Phase 4 context gathered
-last_updated: "2026-03-24T04:38:32.194Z"
+status: executing
+stopped_at: Phase 4 Plan 1 complete
+last_updated: "2026-03-24T07:42:00.000Z"
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 9
+  completed_plans: 7
 ---
 
 # Project State
@@ -19,26 +19,26 @@ progress:
 See: `/home/minhnhut_dev/projects/path-learn/.planning/PROJECT.md` (updated 2026-03-22)
 
 **Core value:** Guide each learner to the right next step with a stable, personalized learning experience that matches their goals, current level, and progress.
-**Current focus:** Phase 03 — session-reliability-and-vietnamese-ux-baseline
+**Current focus:** Phase 04 — canonical-learner-profile-foundation
 
 ## Current Position
 
-Phase: 4
-Plan: Not started
+Phase: 04 (canonical-learner-profile-foundation) — EXECUTING
+Plan: 1 of 3 — COMPLETE
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 0
-- Average duration: -
-- Total execution time: 0.0 hours
+- Total plans completed: 1
+- Average duration: 12 min
+- Total execution time: 0.2 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| Phase 04 P01 | 12m | 3 tasks | 6 files |
 
 | Phase 03 P02 | 19m | 6 tasks | 12 files |
 | Phase 03 P03 | 15m | 7 tasks | 14 files |
@@ -68,6 +68,9 @@ Recent decisions affecting current work:
 - [Phase 03]: Extend frontend/src/strings/vi.ts first, then point Dashboard and Lesson to those keys instead of keeping page-local literals.
 - [Phase 03]: Return enrolled learning path slugs instead of ids so Explore can use its existing slug-based card keys without extra mapping.
 - [Phase 03]: Derive Explore enrollment state from a React Query-backed Set and keep it fresh through the existing ['learning-paths'] prefix invalidation path.
+- [Phase 04 P01]: Store round-1 answers as JSON with stable question ID keys (careerGoal, priorKnowledge, learningBackground, hoursPerWeek).
+- [Phase 04 P01]: Derive initial LearnerProfile skill_level and learning_pace from deterministic CASE expressions in migration SQL.
+- [Phase 04 P01]: Auth isNewUser detection now uses onboardingRounds with completed round 1 filter instead of removed OnboardingData.
 
 ### Pending Todos
 
@@ -81,6 +84,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T04:38:32.190Z
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-canonical-learner-profile-foundation/04-CONTEXT.md
+Last session: 2026-03-24T07:42:00.000Z
+Stopped at: Phase 4 Plan 1 complete
+Resume file: .planning/phases/04-canonical-learner-profile-foundation/04-01-SUMMARY.md
