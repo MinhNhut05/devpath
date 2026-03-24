@@ -7,6 +7,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ProgressStatus } from '@prisma/client';
 
 import { PrismaService } from '../../prisma/index.js';
+import { LearnerProfileService } from '../learner-profile/index.js';
 import { LessonsService } from './lessons.service.js';
 
 const mockUserId = 'user-uuid-123';
@@ -67,9 +68,19 @@ const mockPrerequisite2 = {
   },
 };
 
+// ── Mock LearnerProfileService ──────────────────────────────────────────────
+//
+// LessonsService injects LearnerProfileService to trigger synchronous
+// profile recalculation after lesson/quiz/path milestones (D-09).
+// We mock it here to verify the right event payloads are sent.
+const mockLearnerProfileService = {
+  recalculate: jest.fn().mockResolvedValue(undefined),
+};
+
 describe('LessonsService', () => {
   let service: LessonsService;
   let prisma: any;
+  let learnerProfileService: any;
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -118,11 +129,16 @@ describe('LessonsService', () => {
           provide: PrismaService,
           useValue: prisma,
         },
+        {
+          provide: LearnerProfileService,
+          useValue: mockLearnerProfileService,
+        },
       ],
     }).compile();
 
     service = module.get<LessonsService>(LessonsService);
     prisma = module.get(PrismaService);
+    learnerProfileService = module.get(LearnerProfileService);
 
     // $transaction mock: gọi callback với prisma làm tx
     // → tx.userProgress.update === prisma.userProgress.update (đã mock)
@@ -509,6 +525,169 @@ describe('LessonsService', () => {
       expect(prisma.userProgress.update).not.toHaveBeenCalled();
       expect(prisma.$transaction).not.toHaveBeenCalled();
       expect(result).toEqual(completedProgress);
+    });
+  });
+
+  // ── learnerProfileService.recalculate wiring ────────────────────────────────
+  //
+  // Verify that lesson/quiz/path milestones trigger synchronous profile
+  // recalculation via LearnerProfileService (D-09).
+
+  describe('learnerProfileService.recalculate wiring', () => {
+    // ── Test 1: completeLesson triggers LESSON_COMPLETED recalc ─────────────
+
+    it('should call learnerProfileService.recalculate with LESSON_COMPLETED after completeLesson', async () => {
+      const inProgress = createProgress(ProgressStatus.IN_PROGRESS);
+      const completedProgress = createProgress(ProgressStatus.COMPLETED);
+
+      prisma.lesson.findFirst.mockResolvedValue(mockLesson);
+      prisma.userLearningPath.findFirst.mockResolvedValue(mockEnrollment);
+      prisma.lessonPrerequisite.findMany.mockResolvedValue([]);
+      prisma.userProgress.findUnique.mockResolvedValue(inProgress);
+      prisma.userProgress.update.mockResolvedValue(completedProgress);
+      // advanceToNextLesson: no track found → return { pathCompleted: false }
+      prisma.trackLesson.findFirst.mockResolvedValue(null);
+
+      await service.completeLesson(mockUserId, mockSlug);
+
+      expect(learnerProfileService.recalculate).toHaveBeenCalledWith(
+        mockUserId,
+        { type: 'LESSON_COMPLETED', lessonId: mockLessonId },
+      );
+    });
+
+    // ── Test 2: completeLesson triggers TRACK_COMPLETED when path finishes ──
+
+    it('should also call TRACK_COMPLETED recalc when advanceToNextLesson finishes the path', async () => {
+      const inProgress = createProgress(ProgressStatus.IN_PROGRESS);
+      const completedProgress = createProgress(ProgressStatus.COMPLETED);
+
+      prisma.lesson.findFirst.mockResolvedValue(mockLesson);
+      prisma.userLearningPath.findFirst.mockResolvedValue(mockEnrollment);
+      prisma.lessonPrerequisite.findMany.mockResolvedValue([]);
+      prisma.userProgress.findUnique.mockResolvedValue(inProgress);
+      prisma.userProgress.update.mockResolvedValue(completedProgress);
+
+      // advanceToNextLesson: find current trackLesson
+      prisma.trackLesson.findFirst
+        .mockResolvedValueOnce({
+          // currentTrackLesson (first call)
+          trackId: 'track-1',
+          order: 1,
+          track: { id: 'track-1', learningPathId: mockEnrollment.learningPathId, order: 1 },
+        })
+        .mockResolvedValueOnce(null); // nextInTrack (second call) — no more lessons in track
+
+      // No more tracks in path → path completed
+      prisma.track.findFirst.mockResolvedValue(null);
+      prisma.userLearningPath.update.mockResolvedValue({});
+
+      await service.completeLesson(mockUserId, mockSlug);
+
+      // Should call LESSON_COMPLETED first, then TRACK_COMPLETED
+      expect(learnerProfileService.recalculate).toHaveBeenCalledTimes(2);
+      expect(learnerProfileService.recalculate).toHaveBeenNthCalledWith(
+        1,
+        mockUserId,
+        { type: 'LESSON_COMPLETED', lessonId: mockLessonId },
+      );
+      expect(learnerProfileService.recalculate).toHaveBeenNthCalledWith(
+        2,
+        mockUserId,
+        { type: 'TRACK_COMPLETED', learningPathId: mockEnrollment.learningPathId },
+      );
+    });
+
+    // ── Test 3: submitQuiz triggers QUIZ_PASSED recalc on pass ──────────────
+
+    it('should call learnerProfileService.recalculate with QUIZ_PASSED when quiz is passed', async () => {
+      const mockQuiz = {
+        id: 'quiz-uuid-1',
+        lessonId: mockLessonId,
+        title: 'HTML Quiz',
+        description: null,
+        passThreshold: 70,
+        retryLimit: 3,
+        questions: [
+          {
+            id: 'q1',
+            questionText: 'What is HTML?',
+            questionType: 'SINGLE_CHOICE',
+            options: [{ id: 'a', text: 'Markup' }],
+            correctAnswer: ['a'],
+            explanation: 'HTML is a markup language',
+            order: 1,
+          },
+        ],
+      };
+
+      prisma.lesson.findFirst.mockResolvedValue(mockLesson);
+      prisma.userLearningPath.findFirst.mockResolvedValue(mockEnrollment);
+      prisma.lessonPrerequisite.findMany.mockResolvedValue([]);
+      prisma.quiz.findUnique.mockResolvedValue(mockQuiz);
+      prisma.quizResult.count.mockResolvedValue(0);
+      prisma.quizResult.create.mockResolvedValue({});
+
+      // Submit correct answer → 100% score → passed
+      await service.submitQuiz(mockUserId, mockSlug, { q1: ['a'] });
+
+      expect(learnerProfileService.recalculate).toHaveBeenCalledWith(
+        mockUserId,
+        { type: 'QUIZ_PASSED', quizId: 'quiz-uuid-1', lessonId: mockLessonId },
+      );
+    });
+
+    // ── Test 4: submitQuiz does NOT trigger recalc on fail ───────────────────
+
+    it('should NOT call learnerProfileService.recalculate when quiz is failed', async () => {
+      const mockQuiz = {
+        id: 'quiz-uuid-1',
+        lessonId: mockLessonId,
+        title: 'HTML Quiz',
+        description: null,
+        passThreshold: 70,
+        retryLimit: 3,
+        questions: [
+          {
+            id: 'q1',
+            questionText: 'What is HTML?',
+            questionType: 'SINGLE_CHOICE',
+            options: [{ id: 'a', text: 'Markup' }, { id: 'b', text: 'Style' }],
+            correctAnswer: ['a'],
+            explanation: 'HTML is a markup language',
+            order: 1,
+          },
+        ],
+      };
+
+      prisma.lesson.findFirst.mockResolvedValue(mockLesson);
+      prisma.userLearningPath.findFirst.mockResolvedValue(mockEnrollment);
+      prisma.lessonPrerequisite.findMany.mockResolvedValue([]);
+      prisma.quiz.findUnique.mockResolvedValue(mockQuiz);
+      prisma.quizResult.count.mockResolvedValue(0);
+      prisma.quizResult.create.mockResolvedValue({});
+
+      // Submit wrong answer → 0% score → failed (threshold 70%)
+      await service.submitQuiz(mockUserId, mockSlug, { q1: ['b'] });
+
+      // Failed quiz → no recalc
+      expect(learnerProfileService.recalculate).not.toHaveBeenCalled();
+    });
+
+    // ── Test 5: completeLesson does NOT trigger recalc when already completed (idempotent) ──
+
+    it('should NOT trigger recalculate when lesson is already completed (idempotent)', async () => {
+      const completedProgress = createProgress(ProgressStatus.COMPLETED);
+
+      prisma.lesson.findFirst.mockResolvedValue(mockLesson);
+      prisma.userLearningPath.findFirst.mockResolvedValue(mockEnrollment);
+      prisma.lessonPrerequisite.findMany.mockResolvedValue([]);
+      prisma.userProgress.findUnique.mockResolvedValue(completedProgress);
+
+      await service.completeLesson(mockUserId, mockSlug);
+
+      // Idempotent — already completed, no recalc
+      expect(learnerProfileService.recalculate).not.toHaveBeenCalled();
     });
   });
 });

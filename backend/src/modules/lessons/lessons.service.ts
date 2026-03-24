@@ -6,6 +6,9 @@
 //   → Logic phức tạp riêng: prerequisites check, progress tracking, auto-advance
 //   → Dễ scale: nếu lesson logic lớn lên → không làm phình LearningPathsService
 //
+// After lesson completion, quiz pass, or path completion, the service
+// triggers synchronous profile recalculation via LearnerProfileService (D-09).
+//
 // PrismaModule là @Global() → PrismaService inject tự động.
 
 import {
@@ -18,6 +21,7 @@ import type { Prisma, UserProgress } from '@prisma/client';
 import { ProgressStatus } from '@prisma/client';
 
 import { PrismaService } from '../../prisma/index.js';
+import { LearnerProfileService } from '../learner-profile/index.js';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -43,7 +47,10 @@ type TxClient = Prisma.TransactionClient;
 
 @Injectable()
 export class LessonsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly learnerProfileService: LearnerProfileService,
+  ) {}
 
   // ── Helper: Get Missing Prerequisites ─────────────────────────────────────
 
@@ -350,6 +357,7 @@ export class LessonsService {
   /**
    * Đánh dấu lesson đã hoàn thành + auto-advance sang bài tiếp theo.
    * Update UserProgress record (status: COMPLETED, completedAt = now()).
+   * After commit, triggers synchronous learner-profile recalculation (D-09).
    *
    * Flow:
    *   1. Validate: findLesson + enrollment + prerequisites → 404/403
@@ -358,11 +366,9 @@ export class LessonsService {
    *   4. Transaction:
    *      a. Update status → COMPLETED, set completedAt
    *      b. Auto-advance: tìm next lesson → update currentLessonId
-   *
-   * Auto-advance logic (xem advanceToNextLesson):
-   *   → Next lesson cùng track (order tăng dần)
-   *   → Nếu hết track → next track cùng path → first lesson
-   *   → Nếu hết tất cả tracks → path completed → set completedAt
+   *   5. Recalculate learner profile:
+   *      a. LESSON_COMPLETED recalc (always)
+   *      b. TRACK_COMPLETED recalc (if path finished in this transaction)
    *
    * Tại sao phải start trước khi complete?
    * → Đảm bảo user thực sự đã bắt đầu học (có startedAt)
@@ -409,36 +415,63 @@ export class LessonsService {
     // Tại sao wrap trong $transaction?
     // → Atomic: nếu advance fail → progress update cũng rollback
     // → Consistency: user không bị stuck ở COMPLETED mà currentLessonId sai
-    const updated = await this.prisma.$transaction(async (tx) => {
-      // (a) Update status → COMPLETED
-      const completedProgress = await tx.userProgress.update({
-        where: {
-          userId_lessonId: { userId, lessonId: lesson.id },
-        },
-        data: {
-          status: ProgressStatus.COMPLETED,
-          completedAt: new Date(),
-        },
-      });
+    //
+    // advanceToNextLesson returns { pathCompleted } so we know whether to
+    // trigger TRACK_COMPLETED recalc after the transaction resolves.
+    const { completedProgress, pathCompleted } = await this.prisma.$transaction(
+      async (tx) => {
+        // (a) Update status → COMPLETED
+        const completed = await tx.userProgress.update({
+          where: {
+            userId_lessonId: { userId, lessonId: lesson.id },
+          },
+          data: {
+            status: ProgressStatus.COMPLETED,
+            completedAt: new Date(),
+          },
+        });
 
-      // (b) Auto-advance: tìm bài tiếp theo → update currentLessonId
-      await this.advanceToNextLesson(
-        tx,
-        userId,
-        lesson.id,
-        enrollment.learningPathId,
-      );
+        // (b) Auto-advance: tìm bài tiếp theo → update currentLessonId
+        const advanceResult = await this.advanceToNextLesson(
+          tx,
+          userId,
+          lesson.id,
+          enrollment.learningPathId,
+        );
 
-      return completedProgress;
+        return {
+          completedProgress: completed,
+          pathCompleted: advanceResult.pathCompleted,
+        };
+      },
+    );
+
+    // ── Synchronous profile recalculation (D-09, D-10) ────────────────────
+    //
+    // Called after the transaction resolves so DB state is consistent.
+    // LESSON_COMPLETED: updates learningPace from time vs estimated (D-16)
+    await this.learnerProfileService.recalculate(userId, {
+      type: 'LESSON_COMPLETED',
+      lessonId: lesson.id,
     });
 
-    return updated;
+    // TRACK_COMPLETED: updates preferredTopics + ingests AI chat topics (D-13)
+    if (pathCompleted) {
+      await this.learnerProfileService.recalculate(userId, {
+        type: 'TRACK_COMPLETED',
+        learningPathId: enrollment.learningPathId,
+      });
+    }
+
+    return completedProgress;
   }
 
   // ── Helper: Auto-advance to next lesson ─────────────────────────────────
 
   /**
    * Tìm bài tiếp theo trong learning path và update currentLessonId.
+   * Returns { pathCompleted: boolean } to signal whether the entire
+   * learning path was finished in this call.
    *
    * Flow:
    *   1. Tìm TrackLesson hiện tại → biết track + order trong path
@@ -461,7 +494,7 @@ export class LessonsService {
     userId: string,
     lessonId: string,
     learningPathId: string,
-  ): Promise<void> {
+  ): Promise<{ pathCompleted: boolean }> {
     // ── Bước 1: Tìm vị trí hiện tại (track + order) ──────────────────────
     //
     // Lesson có thể thuộc nhiều tracks (junction table TrackLesson)
@@ -481,7 +514,7 @@ export class LessonsService {
     // Edge case: lesson không thuộc track nào trong path (data inconsistency)
     // → Không advance, giữ nguyên currentLessonId
     // → Có thể xảy ra nếu admin xoá TrackLesson mà user đang học
-    if (!currentTrackLesson) return;
+    if (!currentTrackLesson) return { pathCompleted: false };
 
     // ── Bước 2: Tìm next lesson trong cùng track ─────────────────────────
     //
@@ -503,7 +536,7 @@ export class LessonsService {
         },
         data: { currentLessonId: nextInTrack.lessonId },
       });
-      return;
+      return { pathCompleted: false };
     }
 
     // ── Bước 3: Hết track hiện tại → tìm next track cùng path ──────────
@@ -534,7 +567,7 @@ export class LessonsService {
           },
           data: { currentLessonId: firstLessonOfNextTrack.lessonId },
         });
-        return;
+        return { pathCompleted: false };
       }
     }
 
@@ -552,6 +585,8 @@ export class LessonsService {
         completedAt: new Date(),
       },
     });
+
+    return { pathCompleted: true };
   }
 
   // ── GET /lessons/:slug/quiz ─────────────────────────────────────────────
@@ -601,6 +636,8 @@ export class LessonsService {
 
   /**
    * Grade quiz submission server-side.
+   * After grading, if passed, triggers synchronous learner-profile
+   * recalculation (D-09). Failed quizzes do NOT trigger recalc.
    *
    * Flow:
    *   1. Validate lesson access
@@ -609,7 +646,8 @@ export class LessonsService {
    *   4. Tính score = (correctCount / total) * 100
    *   5. Check pass = score >= passThreshold
    *   6. Lưu QuizResult record
-   *   7. Return result kèm explanation cho từng câu
+   *   7. If passed → recalculate learner profile
+   *   8. Return result kèm explanation cho từng câu
    */
   async submitQuiz(
     userId: string,
@@ -675,6 +713,18 @@ export class LessonsService {
         attemptNumber: previousAttempts + 1,
       },
     });
+
+    // ── Synchronous profile recalculation (D-09) ──────────────────────────
+    //
+    // Only triggered on passed quizzes. Failed attempts do not recalculate
+    // because D-09 specifies "quiz pass", not all attempts.
+    if (passed) {
+      await this.learnerProfileService.recalculate(userId, {
+        type: 'QUIZ_PASSED',
+        quizId: quiz.id,
+        lessonId: lesson.id,
+      });
+    }
 
     return {
       score,
