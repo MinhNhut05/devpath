@@ -10,6 +10,7 @@ import { AuthModule } from './modules/auth/index.js';
 import { AiModule } from './modules/ai/index.js';
 import { AiChatModule } from './modules/ai-chat/index.js';
 import { OnboardingModule } from './modules/onboarding/index.js';
+import { LearnerProfileModule } from './modules/learner-profile/index.js';
 import { LearningPathsModule } from './modules/learning-paths/index.js';
 import { LessonsModule } from './modules/lessons/index.js';
 import { ProgressModule } from './modules/progress/index.js';
@@ -55,6 +56,9 @@ import { AdminModule } from './modules/admin/index.js';
 
     // OnboardingModule: onboarding questions, submit answers, AI recommendation, confirm path
     OnboardingModule,
+
+    // LearnerProfileModule: canonical learner profile, GET /learner-profile/me
+    LearnerProfileModule,
 
     // LearningPathsModule: list paths, path detail, path lessons, enroll
     LearningPathsModule,
