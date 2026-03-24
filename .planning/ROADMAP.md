@@ -56,7 +56,7 @@ Plans:
 Plans:
 - [x] 04-01-PLAN.md — replace legacy onboarding snapshot storage with round-based schema, migration, and auth-safe refactors
 - [x] 04-02-PLAN.md — create the exported learner-profile module and protected `GET /learner-profile/me` API
-- [ ] 04-03-PLAN.md — wire synchronous learner-profile recalculation into lesson, quiz-pass, and path-completion flows
+- [x] 04-03-PLAN.md — wire synchronous learner-profile recalculation into lesson, quiz-pass, and path-completion flows
 
 ### Phase 5: Adaptive Onboarding Baseline and Resume Flow
 **Goal**: Users can establish a reliable baseline profile through resumable early onboarding rounds.
@@ -135,7 +135,7 @@ Legacy phases 1-2 shipped in v1.0 and remain tracked in `/home/minhnhut_dev/proj
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 3. Session Reliability and Vietnamese UX Baseline | 6/6 | Complete | 2026-03-24 |
-| 4. Canonical Learner Profile Foundation | 2/3 | In Progress | - |
+| 4. Canonical Learner Profile Foundation | 3/3 | Complete | 2026-03-24 |
 | 5. Adaptive Onboarding Baseline and Resume Flow | 0/TBD | Not started | - |
 | 6. Main Path Personalization and Content Credibility | 0/TBD | Not started | - |
 | 7. Domain Events and Notification Skeleton | 0/TBD | Not started | - |

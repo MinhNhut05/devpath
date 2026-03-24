@@ -28,7 +28,7 @@ Requirements for milestone v1.1 — Post-MVP Stabilization & Personalization.
 
 - [ ] **PROF-01**: System stores a canonical learner profile that combines onboarding answers and observed learning signals
 - [ ] **PROF-02**: System persists onboarding answers per round so they can be reused for later recommendations and profile updates
-- [ ] **PROF-03**: System recalculates learner profile after relevant lesson milestones to support later onboarding rounds and recommendation updates
+- [x] **PROF-03**: System recalculates learner profile after relevant lesson milestones to support later onboarding rounds and recommendation updates
 
 ### Path Guidance
 
@@ -117,7 +117,7 @@ Which phases cover which requirements.
 | STAB-04 | Phase 3 | Complete |
 | PROF-01 | Phase 4 | Pending |
 | PROF-02 | Phase 4 | Pending |
-| PROF-03 | Phase 4 | Pending |
+| PROF-03 | Phase 4 | Complete |
 | ONB-04 | Phase 5 | Pending |
 | ONB-05 | Phase 5 | Pending |
 | ONB-06 | Phase 5 | Pending |
