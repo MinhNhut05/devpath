@@ -45,7 +45,7 @@ describe('AuthService', () => {
           role: 'USER',
           emailVerified: true,
           passwordHash: 'hashed-password',
-          onboardingData: null,
+          onboardingRounds: [],
           displayName: 'Test User',
         }),
         create: jest.fn().mockResolvedValue({
@@ -503,7 +503,7 @@ describe('AuthService', () => {
     const mockLoginUser = {
       id: 'user-1', email: 'test@example.com', role: 'USER',
       emailVerified: true, passwordHash: 'hashed-password',
-      displayName: 'Test', onboardingData: null,
+      displayName: 'Test', onboardingRounds: [],
     };
 
     beforeEach(() => {
@@ -516,8 +516,26 @@ describe('AuthService', () => {
       expect(result).toMatchObject({
         accessToken: 'mock-jwt-token',
         refreshToken: 'mock-jwt-token',
-        user: { id: 'user-1', isNewUser: true }, // onboardingData=null → isNewUser=true
+        user: { id: 'user-1', isNewUser: true }, // onboardingRounds=[] → isNewUser=true
       });
+    });
+
+    it('should return isNewUser: false when user has completed round 1', async () => {
+      prisma.user.findUnique.mockResolvedValue({
+        ...mockLoginUser,
+        onboardingRounds: [{ id: 'round-1' }],
+      });
+      const result = await authService.login({ email: 'test@example.com', password: 'Pass123!' });
+      expect(result.user.isNewUser).toBe(false);
+    });
+
+    it('should return isNewUser: true when user has no completed rounds', async () => {
+      prisma.user.findUnique.mockResolvedValue({
+        ...mockLoginUser,
+        onboardingRounds: [],
+      });
+      const result = await authService.login({ email: 'test@example.com', password: 'Pass123!' });
+      expect(result.user.isNewUser).toBe(true);
     });
 
     it('email không tồn tại → throw UnauthorizedException', async () => {

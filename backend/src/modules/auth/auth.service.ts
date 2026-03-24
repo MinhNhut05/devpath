@@ -612,7 +612,7 @@ export class AuthService {
    * Đăng nhập bằng email + password
    *
    * Flow:
-   *   1. Tìm user theo email (include onboardingData để check isNewUser)
+   *   1. Tìm user theo email (include onboardingRounds để check isNewUser)
    *   2. Validate: email tồn tại, đã verified, có passwordHash, password đúng
    *   3. Generate token pair → return LoginResult
    *
@@ -629,12 +629,14 @@ export class AuthService {
     email: string;
     password: string;
   }): Promise<LoginResult> {
-    // ── Tìm user + check onboardingData (để xác định isNewUser) ──
+    // ── Tìm user + check onboardingRounds (để xác định isNewUser) ──
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
       include: {
-        onboardingData: {
-          select: { id: true }, // Chỉ cần biết có tồn tại hay không
+        onboardingRounds: {
+          where: { roundNumber: 1, completedAt: { not: null } },
+          select: { id: true },
+          take: 1,
         },
       },
     });
@@ -709,7 +711,7 @@ export class AuthService {
         email: user.email,
         role: user.role,
         displayName: user.displayName,
-        isNewUser: !user.onboardingData, // null = chưa onboard = new user
+        isNewUser: user.onboardingRounds.length === 0, // no completed round 1 = new user
       },
     };
   }
