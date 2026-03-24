@@ -6,11 +6,11 @@ import { vi } from '../strings/vi';
 import { Skeleton } from '../components/feedback/Skeleton';
 
 const linkTypeConfig: Record<ExternalLink['type'], { label: string; className: string }> = {
-  documentation: { label: 'Docs', className: 'bg-white/20 text-white' },
-  video: { label: 'Video', className: 'bg-white/20 text-white' },
-  tutorial: { label: 'Tutorial', className: 'bg-white/20 text-white' },
-  course: { label: 'Course', className: 'bg-white/20 text-white' },
-  interactive: { label: 'Interactive', className: 'bg-white/20 text-white' },
+  documentation: { label: vi.lesson.resourceDocs, className: 'bg-white/20 text-white' },
+  video: { label: vi.lesson.resourceVideo, className: 'bg-white/20 text-white' },
+  tutorial: { label: vi.lesson.resourceTutorial, className: 'bg-white/20 text-white' },
+  course: { label: vi.lesson.resourceCourse, className: 'bg-white/20 text-white' },
+  interactive: { label: vi.lesson.resourceInteractive, className: 'bg-white/20 text-white' },
 };
 
 export default function Lesson() {
