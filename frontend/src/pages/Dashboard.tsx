@@ -62,17 +62,17 @@ const mockActivity = [
 
 const mockBadges = [
   {
-    name: 'First Step',
+    name: vi.dashboard.badgeFirstStepName,
     icon: '🚀',
     desc: vi.dashboard.badgeFirstStepDesc,
   },
   {
-    name: '7-Day Streak',
+    name: vi.dashboard.badgeSevenDayStreakName,
     icon: '🔥',
     desc: vi.dashboard.badgeSevenDayStreakDesc,
   },
   {
-    name: 'Quiz Master',
+    name: vi.dashboard.badgeQuizMasterName,
     icon: '🏆',
     desc: vi.dashboard.badgeQuizMasterDesc,
   },
