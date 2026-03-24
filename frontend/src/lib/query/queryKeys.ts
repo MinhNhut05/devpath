@@ -10,6 +10,7 @@ export const qk = {
   dashboard: ['dashboard', 'overview'] as const,
 
   learningPaths: ['learning-paths'] as const,
+  myEnrollments: ['learning-paths', 'my-enrollments'] as const,
 
   progressOverview: ['progress', 'overview'] as const,
   pathProgress: (pathId: string) => ['progress', 'path', pathId] as const,
