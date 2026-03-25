@@ -70,7 +70,7 @@ Each task was committed atomically:
 4. **Task 4: Create RoundOne, RoundTwo, RoundThree round renderer components** - `4be1e8d` (feat)
 5. **Task 5: Create RecommendationPanel component with confirm integration** - `c40709d` (feat)
 
-**Plan metadata:** `c3f7838` (docs)
+**Plan metadata:** `c3f7838` (docs), `77f2552` (docs follow-up)
 
 ## Files Created/Modified
 - `/home/minhnhut_dev/projects/path-learn/frontend/src/components/onboarding/Stepper.tsx` - 3-step onboarding progress indicator with current/completed/upcoming states.
