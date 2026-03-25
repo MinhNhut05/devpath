@@ -634,7 +634,7 @@ export class AuthService {
       where: { email: dto.email },
       include: {
         onboardingRounds: {
-          where: { roundNumber: 1, completedAt: { not: null } },
+          where: { roundNumber: 1 },
           select: { id: true },
           take: 1,
         },

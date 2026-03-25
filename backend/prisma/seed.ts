@@ -1428,16 +1428,25 @@ Deploy React application lên production.
     },
   });
 
-  // Add onboarding data for test user
-  await prisma.onboardingData.upsert({
-    where: { userId: testUser.id },
+  // Add onboarding round 1 data for test user
+  await prisma.onboardingRound.upsert({
+    where: {
+      userId_roundNumber: {
+        userId: testUser.id,
+        roundNumber: 1,
+      },
+    },
     update: {},
     create: {
       userId: testUser.id,
-      careerGoal: CareerGoal.FRONTEND,
-      priorKnowledge: JSON.stringify(['html', 'css']),
-      learningBackground: LearningBackground.SELF_TAUGHT,
-      hoursPerWeek: 10,
+      roundNumber: 1,
+      answers: {
+        careerGoal: CareerGoal.FRONTEND,
+        priorKnowledge: ['html', 'css'],
+        learningBackground: LearningBackground.SELF_TAUGHT,
+        hoursPerWeek: 10,
+      },
+      completedAt: new Date(),
     },
   });
 

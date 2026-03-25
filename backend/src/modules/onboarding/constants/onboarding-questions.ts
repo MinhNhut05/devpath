@@ -18,7 +18,7 @@ export interface OnboardingOption {
 export interface OnboardingQuestion {
   id: string;
   question: string;
-  type: 'single' | 'multiple';
+  type: 'single' | 'multiple' | 'SINGLE_CHOICE' | 'MULTIPLE_CHOICE';
   options: OnboardingOption[];
 }
 
