@@ -16,6 +16,7 @@
 
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import {
+  CareerGoal,
   LearnerLearningPace,
   LearnerSkillLevel,
   ProgressStatus,
@@ -106,20 +107,178 @@ export class LearnerProfileService {
 
   // ── createFromRoundOne ──────────────────────────────────────────────────
   //
-  // Thin helper for profile creation from round 1 onboarding data.
-  // Phase 5 will call this after round 1 submission completes.
-  // Exists per D-04 even though it may only be used internally at first.
-  //
-  // Currently a placeholder — Phase 5 will fill in the creation logic
-  // that reads round-1 answers and derives initial profile fields.
-  async createFromRoundOne(userId: string) {
-    // Phase 5 will implement: read OnboardingRound where roundNumber=1,
-    // derive careerGoal/skillLevel/learningPace from answers,
-    // then upsert LearnerProfile.
-    // For now, this method signature exists so the service contract is stable.
-    throw new Error(
-      `createFromRoundOne not yet implemented for user ${userId}`,
-    );
+  // Creates the initial canonical profile from completed onboarding round 1.
+  async createFromRoundOne(userId: string): Promise<LearnerProfile> {
+    const round = await this.prisma.onboardingRound.findUnique({
+      where: { userId_roundNumber: { userId, roundNumber: 1 } },
+    });
+
+    if (!round) {
+      throw new NotFoundException(
+        'Round 1 must be completed before creating profile',
+      );
+    }
+
+    const answers = round.answers as Record<string, unknown>;
+    const careerGoal = answers.careerGoal as CareerGoal;
+    const priorKnowledge = Array.isArray(answers.priorKnowledge)
+      ? (answers.priorKnowledge as string[])
+      : [];
+    const learningBackground = answers.learningBackground as string;
+    const hoursPerWeek = Number(answers.hoursPerWeek ?? 0);
+
+    const skillLevel =
+      learningBackground === 'CS_DEGREE' || priorKnowledge.length >= 5
+        ? LearnerSkillLevel.INTERMEDIATE
+        : LearnerSkillLevel.BEGINNER;
+
+    let learningPace: LearnerLearningPace;
+    if (hoursPerWeek >= 20) {
+      learningPace = LearnerLearningPace.FAST;
+    } else if (hoursPerWeek >= 10) {
+      learningPace = LearnerLearningPace.NORMAL;
+    } else {
+      learningPace = LearnerLearningPace.SLOW;
+    }
+
+    return this.prisma.learnerProfile.upsert({
+      where: { userId },
+      update: {
+        careerGoal,
+        skillLevel,
+        learningPace,
+        strengths: priorKnowledge,
+        weaknesses: [],
+        preferredTopics: [],
+        lastRecalculatedAt: new Date(),
+      },
+      create: {
+        userId,
+        careerGoal,
+        skillLevel,
+        learningPace,
+        strengths: priorKnowledge,
+        weaknesses: [],
+        preferredTopics: [],
+        lastRecalculatedAt: new Date(),
+      },
+    });
+  }
+
+  async updateFromRoundTwo(userId: string): Promise<void> {
+    const round = await this.prisma.onboardingRound.findUnique({
+      where: { userId_roundNumber: { userId, roundNumber: 2 } },
+    });
+
+    if (!round) {
+      this.logger.debug(
+        `No round 2 onboarding data for user ${userId}, skipping profile update`,
+      );
+      return;
+    }
+
+    const profile = await this.prisma.learnerProfile.findUnique({
+      where: { userId },
+    });
+
+    if (!profile) {
+      this.logger.debug(
+        `No learner profile for user ${userId}, skipping round 2 profile update`,
+      );
+      return;
+    }
+
+    const answers = round.answers as Record<string, unknown>;
+    const timeline = answers.timeline as string;
+    const learningStyle = String(answers.learningStyle ?? '').toLowerCase();
+
+    let learningPace: LearnerLearningPace;
+    if (timeline === '3_months') {
+      learningPace = LearnerLearningPace.FAST;
+    } else if (timeline === 'no_rush') {
+      learningPace = LearnerLearningPace.SLOW;
+    } else {
+      learningPace = LearnerLearningPace.NORMAL;
+    }
+
+    const existingTopics = Array.isArray(profile.preferredTopics)
+      ? (profile.preferredTopics as string[])
+      : [];
+    const preferredTopics = learningStyle
+      ? [...new Set([...existingTopics, learningStyle])]
+      : existingTopics;
+
+    await this.prisma.learnerProfile.update({
+      where: { userId },
+      data: {
+        learningPace,
+        preferredTopics,
+        lastRecalculatedAt: new Date(),
+      },
+    });
+  }
+
+  async updateFromRoundThree(userId: string): Promise<void> {
+    const round = await this.prisma.onboardingRound.findUnique({
+      where: { userId_roundNumber: { userId, roundNumber: 3 } },
+    });
+
+    if (!round) {
+      this.logger.debug(
+        `No round 3 onboarding data for user ${userId}, skipping profile update`,
+      );
+      return;
+    }
+
+    const profile = await this.prisma.learnerProfile.findUnique({
+      where: { userId },
+    });
+
+    if (!profile) {
+      this.logger.debug(
+        `No learner profile for user ${userId}, skipping round 3 profile update`,
+      );
+      return;
+    }
+
+    const answers = round.answers as Record<string, unknown>;
+    const rawSkillRatings = answers.skillRatings as Record<string, number> | undefined;
+    const skillRatings = rawSkillRatings ?? {};
+    const entries = Object.entries(skillRatings);
+    const avgRating =
+      entries.length > 0
+        ? entries.reduce((sum, [, rating]) => sum + Number(rating), 0) / entries.length
+        : 0;
+
+    let skillLevel: LearnerSkillLevel;
+    if (avgRating >= 4) {
+      skillLevel = LearnerSkillLevel.ADVANCED;
+    } else if (avgRating >= 2.5) {
+      skillLevel = LearnerSkillLevel.INTERMEDIATE;
+    } else {
+      skillLevel = LearnerSkillLevel.BEGINNER;
+    }
+
+    const strengths = entries
+      .filter(([, rating]) => Number(rating) >= 4)
+      .map(([slug]) => slug.replace(/_/g, ' '));
+    const weaknesses = entries
+      .filter(([, rating]) => Number(rating) <= 2)
+      .map(([slug]) => slug.replace(/_/g, ' '));
+
+    const existingStrengths = Array.isArray(profile.strengths)
+      ? (profile.strengths as string[])
+      : [];
+
+    await this.prisma.learnerProfile.update({
+      where: { userId },
+      data: {
+        skillLevel,
+        strengths: [...new Set([...existingStrengths, ...strengths])],
+        weaknesses: [...new Set(weaknesses)],
+        lastRecalculatedAt: new Date(),
+      },
+    });
   }
 
   // ── recalculate ─────────────────────────────────────────────────────────
