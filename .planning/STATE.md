@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: unknown
-stopped_at: Phase 5 context gathered
-last_updated: "2026-03-24T14:46:02.692Z"
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-03-25T15:24:12.512Z"
 progress:
   total_phases: 7
   completed_phases: 2
-  total_plans: 9
-  completed_plans: 9
+  total_plans: 15
+  completed_plans: 10
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: `/home/minhnhut_dev/projects/path-learn/.planning/PROJECT.md` (updated 2026-03-22)
 
 **Core value:** Guide each learner to the right next step with a stable, personalized learning experience that matches their goals, current level, and progress.
-**Current focus:** Phase 04 — canonical-learner-profile-foundation
+**Current focus:** Phase 05 — adaptive-onboarding-baseline-and-resume-flow
 
 ## Current Position
 
-Phase: 5
-Plan: Not started
+Phase: 05 (adaptive-onboarding-baseline-and-resume-flow) — EXECUTING
+Plan: 2 of 6
 
 ## Performance Metrics
 
@@ -47,6 +47,7 @@ Plan: Not started
 | Phase 03 P06 | 6 min | 3 tasks | 3 files |
 | Phase 03 P05 | 10 min | 5 tasks | 6 files |
 | Phase 04 P03 | 3 min | 2 tasks | 5 files |
+| Phase 05 P01 | 1345 | 2 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,8 @@ Recent decisions affecting current work:
 
 - [Phase 04 P03]: Recalculate runs after Prisma transaction resolves; advanceToNextLesson returns { pathCompleted } metadata for downstream side-effects.
 - [Phase 04 P03]: AI chat topic extraction is deterministic (split/filter/dedupe) with no external AI calls.
+- [Phase 05]: Implement Wave 0 primitives locally against existing Tailwind/CSS tokens instead of adding Radix dependencies in plan 05-01.
+- [Phase 05]: Bootstrap onboarding from /onboarding/status with fallback to legacy /onboarding/questions so Wave 0 tests work before full backend resume flow ships.
 
 ### Pending Todos
 
@@ -93,6 +96,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T14:46:02.689Z
-Stopped at: Phase 5 context gathered
-Resume file: .planning/phases/05-adaptive-onboarding-baseline-and-resume-flow/05-CONTEXT.md
+Last session: 2026-03-25T15:24:12.510Z
+Stopped at: Completed 05-01-PLAN.md
+Resume file: None

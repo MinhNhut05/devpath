@@ -16,10 +16,10 @@ Requirements for milestone v1.1 — Post-MVP Stabilization & Personalization.
 
 ### Onboarding
 
-- [ ] **ONB-04**: User can resume an unfinished onboarding flow from the last incomplete round
+- [x] **ONB-04**: User can resume an unfinished onboarding flow from the last incomplete round
 - [ ] **ONB-05**: User can complete onboarding round 1 for basic profile information
-- [ ] **ONB-06**: User can complete onboarding round 2 for career goals and direction
-- [ ] **ONB-07**: User can complete onboarding round 3 for current skill assessment
+- [x] **ONB-06**: User can complete onboarding round 2 for career goals and direction
+- [x] **ONB-07**: User can complete onboarding round 3 for current skill assessment
 - [ ] **ONB-08**: User can complete onboarding round 4 to confirm or adjust a recommended main path
 - [ ] **ONB-09**: User can complete onboarding round 5 to calibrate the profile after early learning progress
 - [ ] **ONB-10**: Later onboarding rounds appear after lesson milestones instead of forcing all rounds at first login
@@ -118,10 +118,10 @@ Which phases cover which requirements.
 | PROF-01 | Phase 4 | Pending |
 | PROF-02 | Phase 4 | Pending |
 | PROF-03 | Phase 4 | Complete |
-| ONB-04 | Phase 5 | Pending |
+| ONB-04 | Phase 5 | Complete |
 | ONB-05 | Phase 5 | Pending |
-| ONB-06 | Phase 5 | Pending |
-| ONB-07 | Phase 5 | Pending |
+| ONB-06 | Phase 5 | Complete |
+| ONB-07 | Phase 5 | Complete |
 | ONB-08 | Phase 6 | Pending |
 | ONB-09 | Phase 6 | Pending |
 | ONB-10 | Phase 6 | Pending |
