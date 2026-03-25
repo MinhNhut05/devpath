@@ -4,6 +4,7 @@ import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
 import { Separator } from '../ui/separator';
 import type { OnboardingRecommendation } from '../../hooks/useOnboardingRecommendation';
+import { vi } from '../../strings/vi';
 
 interface RecommendationPanelProps {
   recommendation: OnboardingRecommendation;
@@ -82,7 +83,7 @@ export default function RecommendationPanel({
         {error ? (
           <Alert className="mt-5 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">
             <AlertDescription className="text-red-300">
-              Không thể xác nhận lộ trình lúc này. Hãy thử lại.
+              {error ?? vi.onboarding.confirmError}
             </AlertDescription>
           </Alert>
         ) : null}
@@ -93,7 +94,7 @@ export default function RecommendationPanel({
           disabled={isConfirming}
           className="mt-6 w-full rounded-xl bg-gradient-to-r from-purple-600 to-cyan-500 py-3 font-semibold text-white shadow-lg shadow-purple-500/20 transition-all hover:opacity-90 disabled:opacity-40"
         >
-          {isConfirming ? 'Đang xử lý...' : 'Xác nhận lộ trình →'}
+          {isConfirming ? vi.onboarding.submitting : `${vi.onboarding.confirmCta} →`}
         </Button>
       </CardContent>
     </Card>

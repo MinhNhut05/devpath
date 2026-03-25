@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 
 import { Button } from '../ui/button';
 import { Alert, AlertDescription } from '../ui/alert';
+import { vi } from '../../strings/vi';
 import QuestionCard from './QuestionCard';
 
 interface Question {
@@ -72,9 +73,9 @@ export default function RoundTwo({ questions, onSubmit, isSubmitting, error }: R
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-lg font-semibold text-white/90">Định hướng nghề nghiệp</h2>
+        <h2 className="text-lg font-semibold text-white/90">{vi.onboarding.roundTwoTitle}</h2>
         <p className="mt-2 text-sm text-white/50">
-          Chia sẻ mục tiêu và phong cách học để chúng tôi cá nhân hóa lộ trình.
+          {vi.onboarding.roundTwoSubtitle}
         </p>
       </div>
 
@@ -106,7 +107,7 @@ export default function RoundTwo({ questions, onSubmit, isSubmitting, error }: R
           disabled={!allAnswered || isSubmitting}
           className="w-full rounded-xl bg-gradient-to-r from-purple-600 to-cyan-500 py-3 font-semibold text-white shadow-lg shadow-purple-500/20 transition-all hover:opacity-90 disabled:opacity-40"
         >
-          {isSubmitting ? 'Đang xử lý...' : 'Tiếp tục thiết lập →'}
+          {isSubmitting ? vi.onboarding.submitting : `${vi.onboarding.primaryCta} →`}
         </Button>
       </div>
     </div>

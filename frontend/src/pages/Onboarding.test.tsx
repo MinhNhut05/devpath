@@ -1,162 +1,295 @@
-import { describe, expect, it, beforeEach, vi } from 'vitest';
-import { screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import Onboarding from './Onboarding';
 import { renderWithProviders } from '../test/renderWithProviders';
+import type { OnboardingStatus } from '../hooks/useOnboardingStatus';
+import type { OnboardingQuestion } from '../hooks/useOnboardingQuestions';
+import type { OnboardingRecommendation } from '../hooks/useOnboardingRecommendation';
 
-type MockApiResponse<T> = {
-  data: {
-    data: T;
-  };
-};
-
-const { apiGet, apiPost } = vi.hoisted(() => ({
-  apiGet: vi.fn(),
-  apiPost: vi.fn(),
+const {
+  mockNavigate,
+  mockUseOnboardingStatus,
+  mockUseOnboardingQuestions,
+  mockUseSubmitOnboardingRound,
+  mockUseOnboardingRecommendation,
+  mockUseConfirmOnboardingPath,
+} = vi.hoisted(() => ({
+  mockNavigate: vi.fn(),
+  mockUseOnboardingStatus: vi.fn(),
+  mockUseOnboardingQuestions: vi.fn(),
+  mockUseSubmitOnboardingRound: vi.fn(),
+  mockUseOnboardingRecommendation: vi.fn(),
+  mockUseConfirmOnboardingPath: vi.fn(),
 }));
 
-vi.mock('../services/api', () => ({
-  default: {
-    get: apiGet,
-    post: apiPost,
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
+
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
+
+vi.mock('../hooks/useOnboardingStatus', () => ({
+  useOnboardingStatus: mockUseOnboardingStatus,
+}));
+
+vi.mock('../hooks/useOnboardingQuestions', () => ({
+  useOnboardingQuestions: mockUseOnboardingQuestions,
+}));
+
+vi.mock('../hooks/useSubmitOnboardingRound', () => ({
+  useSubmitOnboardingRound: mockUseSubmitOnboardingRound,
+}));
+
+vi.mock('../hooks/useOnboardingRecommendation', () => ({
+  useOnboardingRecommendation: mockUseOnboardingRecommendation,
+}));
+
+vi.mock('../hooks/useConfirmOnboardingPath', () => ({
+  useConfirmOnboardingPath: mockUseConfirmOnboardingPath,
+}));
+
+function createStatus(overrides: Partial<OnboardingStatus> = {}): OnboardingStatus {
+  return {
+    completedRounds: [],
+    nextRound: 1,
+    resumeAvailable: false,
+    canRequestRecommendation: false,
+    hasConfirmedPath: false,
+    ...overrides,
+  };
+}
+
+function createStatusQuery(status: OnboardingStatus) {
+  return {
+    data: status,
+    isLoading: false,
+    isError: false,
+    error: null,
+    refetch: vi.fn(),
+  };
+}
+
+function createQuestionsQuery(questions: OnboardingQuestion[] = []) {
+  return {
+    data: questions,
+    isLoading: false,
+    error: null,
+  };
+}
+
+function createRecommendationQuery(recommendation: OnboardingRecommendation | null = null) {
+  return {
+    data: recommendation,
+    isLoading: false,
+    error: null,
+  };
+}
+
+function createSubmitMutation() {
+  return {
+    mutate: vi.fn(),
+    isPending: false,
+    error: null,
+  };
+}
+
+function createConfirmMutation() {
+  return {
+    mutate: vi.fn(),
+    isPending: false,
+    error: null,
+  };
+}
+
+const roundOneQuestions: OnboardingQuestion[] = [
+  {
+    id: 'careerGoal',
+    question: 'Bạn muốn theo đuổi hướng nào?',
+    type: 'single',
+    options: [
+      { value: 'frontend', label: 'Frontend' },
+      { value: 'backend', label: 'Backend' },
+    ],
   },
-}));
+  {
+    id: 'priorKnowledge',
+    question: 'Bạn đã từng học gì rồi?',
+    type: 'multiple',
+    options: [
+      { value: 'html', label: 'HTML/CSS' },
+      { value: 'js', label: 'JavaScript' },
+    ],
+  },
+  {
+    id: 'learningBackground',
+    question: 'Nền tảng học tập của bạn là gì?',
+    type: 'single',
+    options: [
+      { value: 'self_taught', label: 'Tự học' },
+      { value: 'cs_degree', label: 'Học đại học' },
+    ],
+  },
+  {
+    id: 'hoursPerWeek',
+    question: 'Bạn có thể học bao nhiêu giờ mỗi tuần?',
+    type: 'single',
+    options: [
+      { value: '10', label: '10 giờ' },
+      { value: '20', label: '20 giờ' },
+    ],
+  },
+];
 
-function createDeferred<T>() {
-  let resolve!: (value: T) => void;
-  let reject!: (reason?: unknown) => void;
+const roundTwoQuestions: OnboardingQuestion[] = [
+  {
+    id: 'targetRole',
+    question: 'Vai trò mục tiêu của bạn là gì?',
+    type: 'single',
+    options: [
+      { value: 'junior', label: 'Junior Developer' },
+      { value: 'intern', label: 'Intern' },
+    ],
+  },
+];
 
-  const promise = new Promise<T>((res, rej) => {
-    resolve = res;
-    reject = rej;
-  });
-
-  return { promise, resolve, reject };
-}
-
-function mockStatusResponse(status: {
-  completedRounds: number[];
-  nextRound: number | null;
-  resumeAvailable: boolean;
-  canRequestRecommendation: boolean;
-  careerGoal: string | null;
-  hasConfirmedPath: boolean;
-}): MockApiResponse<typeof status> {
-  return {
-    data: {
-      data: status,
-    },
-  };
-}
-
-function mockRecommendationResponse(): MockApiResponse<{
-  source: 'ai';
-  primaryPath: string;
-  alternativePaths: string[];
-  reason: string;
-  focusAreas: string[];
-  tips: string[];
-}> {
-  return {
-    data: {
-      data: {
-        source: 'ai',
-        primaryPath: 'frontend-developer',
-        alternativePaths: ['fullstack-developer'],
-        reason: 'Phù hợp với nền tảng hiện tại của bạn.',
-        focusAreas: ['JavaScript', 'React'],
-        tips: ['Ôn lại HTML/CSS nền tảng'],
-      },
-    },
-  };
-}
+const recommendation: OnboardingRecommendation = {
+  source: 'ai',
+  primaryPath: 'frontend-developer',
+  learningPathId: 'path-123',
+  alternativePaths: ['fullstack-developer'],
+  reason: 'Phù hợp với mục tiêu hiện tại của bạn.',
+  focusAreas: ['JavaScript', 'React'],
+  tips: ['Ôn lại nền tảng HTML/CSS'],
+};
 
 describe('Onboarding', () => {
   beforeEach(() => {
-    apiGet.mockReset();
-    apiPost.mockReset();
+    mockNavigate.mockReset();
+    mockUseOnboardingStatus.mockReset();
+    mockUseOnboardingQuestions.mockReset();
+    mockUseSubmitOnboardingRound.mockReset();
+    mockUseOnboardingRecommendation.mockReset();
+    mockUseConfirmOnboardingPath.mockReset();
+
+    mockUseOnboardingStatus.mockReturnValue(createStatusQuery(createStatus()));
+    mockUseOnboardingQuestions.mockReturnValue(createQuestionsQuery(roundOneQuestions));
+    mockUseSubmitOnboardingRound.mockReturnValue(createSubmitMutation());
+    mockUseOnboardingRecommendation.mockReturnValue(createRecommendationQuery());
+    mockUseConfirmOnboardingPath.mockReturnValue(createConfirmMutation());
   });
 
-  it('renders a loading or skeleton state cleanly while onboarding shell data is pending', () => {
-    const deferredStatus = createDeferred<MockApiResponse<unknown>>();
-
-    apiGet.mockImplementation((url: string) => {
-      if (url === '/onboarding/status') {
-        return deferredStatus.promise;
-      }
-
-      return Promise.reject(new Error(`Unexpected GET ${url}`));
-    });
-
-    renderWithProviders(<Onboarding />);
-
-    expect(screen.getByText(/đang tải/i)).toBeInTheDocument();
-  });
-
-  it('renders a resume state with a welcome-back message and continue CTA for ONB-04', async () => {
-    apiGet.mockImplementation((url: string) => {
-      if (url === '/onboarding/status') {
-        return Promise.resolve(
-          mockStatusResponse({
-            completedRounds: [1],
-            nextRound: 2,
-            resumeAvailable: true,
-            canRequestRecommendation: false,
-            careerGoal: 'frontend',
-            hasConfirmedPath: false,
-          }),
-        );
-      }
-
-      if (url === '/onboarding/questions') {
-        return Promise.resolve({
-          data: {
-            data: [],
-          },
-        });
-      }
-
-      return Promise.reject(new Error(`Unexpected GET ${url}`));
-    });
-
-    renderWithProviders(<Onboarding />);
-
-    expect(await screen.findByText(/chào mừng bạn quay lại/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /tiếp tục/i })).toBeInTheDocument();
-  });
-
-  it('renders a recommendation state with a confirm CTA after all rounds complete for ONB-06 and ONB-07 coverage', async () => {
-    apiGet.mockImplementation((url: string) => {
-      if (url === '/onboarding/status') {
-        return Promise.resolve(
-          mockStatusResponse({
-            completedRounds: [1, 2, 3],
-            nextRound: null,
-            resumeAvailable: false,
-            canRequestRecommendation: true,
-            careerGoal: 'frontend',
-            hasConfirmedPath: false,
-          }),
-        );
-      }
-
-      if (url === '/onboarding/recommendation') {
-        return Promise.resolve(mockRecommendationResponse());
-      }
-
-      return Promise.reject(new Error(`Unexpected GET ${url}`));
-    });
-
-    renderWithProviders(<Onboarding />);
-
-    expect(await screen.findByText(/gợi ý của ai/i)).toBeInTheDocument();
-    expect(screen.getByText(/lập trình viên frontend/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /bắt đầu học|xác nhận|confirm/i })).toBeInTheDocument();
-  });
-
-  it('keeps explicit Wave 0 placeholders for ONB-04, ONB-06, and ONB-07 flow expansion', () => {
-    expect(['ONB-04', 'ONB-06', 'ONB-07']).toEqual(
-      expect.arrayContaining(['ONB-04', 'ONB-06', 'ONB-07']),
+  it('renders ONB-04 resume flow and hides welcome card after continue click', async () => {
+    mockUseOnboardingStatus.mockReturnValue(
+      createStatusQuery(
+        createStatus({
+          completedRounds: [1],
+          nextRound: 2,
+          resumeAvailable: true,
+        }),
+      ),
     );
+    mockUseOnboardingQuestions.mockReturnValue(createQuestionsQuery(roundTwoQuestions));
+
+    const user = userEvent.setup();
+
+    renderWithProviders(<Onboarding />);
+
+    expect(await screen.findByText('Chào mừng bạn quay lại')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Tiếp tục' }));
+
+    await waitFor(() => {
+      expect(screen.queryByText('Chào mừng bạn quay lại')).not.toBeInTheDocument();
+    });
+
+    expect(screen.getByText('Định hướng nghề nghiệp')).toBeInTheDocument();
+  });
+
+  it('submits round one payload for ONB-05 sequential progression', async () => {
+    const submitMutation = createSubmitMutation();
+    mockUseSubmitOnboardingRound.mockReturnValue(submitMutation);
+    mockUseOnboardingStatus.mockReturnValue(
+      createStatusQuery(
+        createStatus({
+          completedRounds: [],
+          nextRound: 1,
+          resumeAvailable: false,
+        }),
+      ),
+    );
+    mockUseOnboardingQuestions.mockReturnValue(createQuestionsQuery(roundOneQuestions));
+
+    const user = userEvent.setup();
+
+    renderWithProviders(<Onboarding />);
+
+    expect(screen.queryByText('Chào mừng bạn quay lại')).not.toBeInTheDocument();
+    expect(screen.getByText('Hồ sơ cơ bản')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('radio', { name: /frontend/i }));
+    await user.click(screen.getByRole('checkbox', { name: /html\/css/i }));
+    await user.click(screen.getByRole('radio', { name: /tự học/i }));
+    await user.click(screen.getByRole('radio', { name: /10 giờ/i }));
+    await user.click(screen.getByRole('button', { name: /tiếp tục thiết lập/i }));
+
+    expect(submitMutation.mutate).toHaveBeenCalledWith({
+      round: 1,
+      data: {
+        careerGoal: 'frontend',
+        priorKnowledge: ['html'],
+        learningBackground: 'self_taught',
+        hoursPerWeek: 10,
+      },
+    });
+  });
+
+  it('calls confirm mutation for D-17 confirm flow', async () => {
+    const confirmMutation = createConfirmMutation();
+    mockUseConfirmOnboardingPath.mockReturnValue(confirmMutation);
+    mockUseOnboardingStatus.mockReturnValue(
+      createStatusQuery(
+        createStatus({
+          completedRounds: [1, 2, 3],
+          nextRound: null,
+          canRequestRecommendation: true,
+        }),
+      ),
+    );
+    mockUseOnboardingQuestions.mockReturnValue(createQuestionsQuery());
+    mockUseOnboardingRecommendation.mockReturnValue(createRecommendationQuery(recommendation));
+
+    const user = userEvent.setup();
+
+    renderWithProviders(<Onboarding />);
+
+    await user.click(screen.getByRole('button', { name: /xác nhận lộ trình/i }));
+
+    expect(confirmMutation.mutate).toHaveBeenCalledWith('path-123');
+  });
+
+  it('redirects to dashboard when hasConfirmedPath is true', async () => {
+    mockUseOnboardingStatus.mockReturnValue(
+      createStatusQuery(
+        createStatus({
+          completedRounds: [1, 2, 3],
+          nextRound: null,
+          canRequestRecommendation: true,
+          hasConfirmedPath: true,
+        }),
+      ),
+    );
+    mockUseOnboardingQuestions.mockReturnValue(createQuestionsQuery());
+    mockUseOnboardingRecommendation.mockReturnValue(createRecommendationQuery());
+
+    renderWithProviders(<Onboarding />);
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/dashboard', { replace: true });
+    });
   });
 });

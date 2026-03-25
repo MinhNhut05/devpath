@@ -1,15 +1,15 @@
 import { Progress } from '../ui/progress';
+import { vi } from '../../strings/vi';
 
 interface StepperProps {
   currentRound: number;
   completedRounds: number[];
 }
 
-const STEPS = [
-  { round: 1, label: 'Vòng 1' },
-  { round: 2, label: 'Vòng 2' },
-  { round: 3, label: 'Vòng 3' },
-] as const;
+const STEPS = vi.onboarding.stepperLabels.map((label, index) => ({
+  round: index + 1,
+  label,
+})) as Array<{ round: number; label: string }>;
 
 function getProgressValue(currentRound: number, completedRounds: number[]) {
   if (completedRounds.length >= 3) {
