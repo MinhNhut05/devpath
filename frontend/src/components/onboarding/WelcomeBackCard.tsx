@@ -7,6 +7,8 @@ interface WelcomeBackCardProps {
 }
 
 export default function WelcomeBackCard({ completedRounds, onContinue }: WelcomeBackCardProps) {
+  const completedCount = completedRounds.length;
+
   return (
     <Card className="mb-6 rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl">
       <CardContent className="p-6">
@@ -14,7 +16,7 @@ export default function WelcomeBackCard({ completedRounds, onContinue }: Welcome
         <p className="mt-2 text-sm text-white/50">
           Bạn đang dở vòng thiết lập ban đầu. Tiếp tục để hoàn thành hồ sơ học tập.
         </p>
-        <p className="mt-3 text-xs text-white/30">Đã hoàn thành: {completedRounds.length}/3 vòng</p>
+        <p className="mt-3 text-xs text-white/30">Đã hoàn thành: {completedCount}/3 vòng</p>
 
         <Button
           type="button"
