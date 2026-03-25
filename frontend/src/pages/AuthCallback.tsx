@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate as useRouterNavigate, useSearchParams } from 'react-router-dom';
 import api, { resetSessionExpiredGuard } from '../services/api';
 import { useAuthStore } from '../stores/authStore';
 import { vi } from '../strings/vi';
@@ -8,13 +8,12 @@ import { vi } from '../strings/vi';
 // Backend redirect về: /auth/callback?token=xxx&isNewUser=true
 export default function AuthCallback() {
   const [params] = useSearchParams();
-  const navigate = useNavigate();
+  const navigate = useRouterNavigate();
   const setToken = useAuthStore((s) => s.setToken);
   const setAuth = useAuthStore((s) => s.setAuth);
 
   useEffect(() => {
     const token = params.get('token');
-    const isNewUser = params.get('isNewUser') === 'true';
 
     if (!token) {
       navigate('/login', { replace: true });
@@ -30,10 +29,10 @@ export default function AuthCallback() {
       .then((res) => {
         resetSessionExpiredGuard();
         setAuth(token, res.data.data); // lưu cả token + user
-        navigate(isNewUser ? '/onboarding' : '/dashboard', { replace: true });
+        navigate(!res.data.data.onboardingCompleted ? '/onboarding' : '/dashboard', { replace: true });
       })
       .catch(() => {
-        navigate('/login', { replace: true });
+        window.location.replace('/login');
       });
   }, [params, navigate, setToken, setAuth]);
 

@@ -217,7 +217,7 @@ export default function AuthPage() {
       const { accessToken, user } = res.data.data;
       resetSessionExpiredGuard();
       setAuth(accessToken, user);
-      navigate(user.isNewUser ? '/onboarding' : '/dashboard');
+      navigate(!user.onboardingCompleted ? '/onboarding' : '/dashboard');
     } catch (err) {
       setLoginError(getErrMsg(err, vi.auth.loginError));
     } finally {

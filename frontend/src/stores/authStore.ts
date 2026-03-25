@@ -5,7 +5,8 @@ interface User {
   email: string;
   role: string;
   displayName?: string; // tên hiển thị (optional, từ register)
-  isNewUser?: boolean; // dùng để navigate sau login: true → /onboarding
+  isNewUser?: boolean; // legacy flag từ auth response cũ
+  onboardingCompleted?: boolean;
 }
 
 interface AuthState {
