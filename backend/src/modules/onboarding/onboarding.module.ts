@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from '../auth/index.js';
+import { LearnerProfileModule } from '../learner-profile/learner-profile.module.js';
 import { OnboardingService } from './onboarding.service.js';
 import { OnboardingController } from './onboarding.controller.js';
 
@@ -7,6 +8,7 @@ import { OnboardingController } from './onboarding.controller.js';
   imports: [
     // AuthModule: cung cap JwtAuthGuard + JwtStrategy (de verify token)
     AuthModule,
+    LearnerProfileModule,
   ],
   controllers: [OnboardingController],
   providers: [

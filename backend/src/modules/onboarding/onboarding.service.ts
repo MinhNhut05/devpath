@@ -8,17 +8,29 @@
 
 import {
   Injectable,
+  BadRequestException,
   ConflictException,
   NotFoundException,
   UnprocessableEntityException,
   Logger,
 } from '@nestjs/common';
+import { CareerGoal } from '@prisma/client';
 import type { OnboardingRound, UserLearningPath } from '@prisma/client';
 
 import { PrismaService } from '../../prisma/index.js';
 import { AiService } from '../ai/index.js';
-import { ONBOARDING_QUESTIONS } from './constants/index.js';
+import { LearnerProfileService } from '../learner-profile/learner-profile.service.js';
+import {
+  ONBOARDING_QUESTIONS,
+  ROUND_TWO_QUESTIONS,
+  getRoundThreeQuestions,
+} from './constants/index.js';
 import type { OnboardingQuestion } from './constants/index.js';
+import {
+  OnboardingStatusDto,
+  SubmitRoundThreeDto,
+  SubmitRoundTwoDto,
+} from './dto/index.js';
 import type { SubmitOnboardingDto } from './dto/index.js';
 import type { ConfirmPathDto } from './dto/index.js';
 import {
@@ -27,6 +39,12 @@ import {
   getFallbackRecommendation,
 } from './recommendation/index.js';
 import type { RecommendationResult, OnboardingDataInput } from './recommendation/index.js';
+
+export interface OnboardingRecommendationResponse extends RecommendationResult {
+  learningPathId: string;
+}
+
+const VALID_ROUNDS = [1, 2, 3] as const;
 
 @Injectable()
 export class OnboardingService {
@@ -39,6 +57,7 @@ export class OnboardingService {
     // AiService la @Global() shared module -> tu dong available
     // Khong can import AiModule trong OnboardingModule
     private readonly aiService: AiService,
+    private readonly learnerProfileService: LearnerProfileService,
   ) {}
 
   // ── GET /onboarding/questions ─────────────────────────────────────────────
@@ -90,6 +109,140 @@ export class OnboardingService {
       },
     });
 
+    await this.learnerProfileService.createFromRoundOne(userId);
+
+    return onboardingRound;
+  }
+
+  async getStatus(userId: string): Promise<OnboardingStatusDto> {
+    const [rounds, pathCount] = await Promise.all([
+      this.prisma.onboardingRound.findMany({
+        where: { userId },
+        select: { roundNumber: true, answers: true },
+        orderBy: { roundNumber: 'asc' },
+      }),
+      this.prisma.userLearningPath.count({ where: { userId } }),
+    ]);
+
+    const completedRounds = rounds.map((round) => round.roundNumber);
+    const nextRound = VALID_ROUNDS.find(
+      (roundNumber) => !completedRounds.includes(roundNumber),
+    ) ?? null;
+    const roundOne = rounds.find((round) => round.roundNumber === 1);
+    const roundOneAnswers = roundOne?.answers as Record<string, unknown> | undefined;
+
+    return {
+      completedRounds,
+      nextRound,
+      resumeAvailable: completedRounds.includes(1) && nextRound !== null,
+      canRequestRecommendation: completedRounds.length === 3,
+      careerGoal: (roundOneAnswers?.careerGoal as string | undefined) ?? null,
+      hasConfirmedPath: pathCount > 0,
+    };
+  }
+
+  async getQuestionsForRound(
+    userId: string,
+    roundNumber: number,
+  ): Promise<OnboardingQuestion[]> {
+    if (roundNumber === 1) {
+      return ONBOARDING_QUESTIONS;
+    }
+
+    if (roundNumber === 2) {
+      return ROUND_TWO_QUESTIONS;
+    }
+
+    if (roundNumber === 3) {
+      const roundOne = await this.prisma.onboardingRound.findUnique({
+        where: { userId_roundNumber: { userId, roundNumber: 1 } },
+      });
+
+      if (!roundOne) {
+        throw new BadRequestException(
+          'Complete round 1 before accessing round 3 questions',
+        );
+      }
+
+      const answers = roundOne.answers as Record<string, unknown>;
+      return getRoundThreeQuestions(answers.careerGoal as CareerGoal);
+    }
+
+    throw new BadRequestException('Invalid round number. Must be 1, 2, or 3');
+  }
+
+  async submitRoundTwo(
+    userId: string,
+    dto: SubmitRoundTwoDto,
+  ): Promise<OnboardingRound> {
+    const roundOne = await this.prisma.onboardingRound.findUnique({
+      where: { userId_roundNumber: { userId, roundNumber: 1 } },
+    });
+
+    if (!roundOne) {
+      throw new BadRequestException('Complete round 1 before submitting round 2');
+    }
+
+    const existingRoundTwo = await this.prisma.onboardingRound.findUnique({
+      where: { userId_roundNumber: { userId, roundNumber: 2 } },
+    });
+
+    if (existingRoundTwo) {
+      throw new ConflictException('Round 2 already submitted');
+    }
+
+    const onboardingRound = await this.prisma.onboardingRound.create({
+      data: {
+        userId,
+        roundNumber: 2,
+        answers: {
+          targetRole: dto.targetRole,
+          workEnvironment: dto.workEnvironment,
+          timeline: dto.timeline,
+          learningStyle: dto.learningStyle,
+        },
+        completedAt: new Date(),
+      },
+    });
+
+    await this.learnerProfileService.updateFromRoundTwo(userId);
+
+    return onboardingRound;
+  }
+
+  async submitRoundThree(
+    userId: string,
+    dto: SubmitRoundThreeDto,
+  ): Promise<OnboardingRound> {
+    const roundTwo = await this.prisma.onboardingRound.findUnique({
+      where: { userId_roundNumber: { userId, roundNumber: 2 } },
+    });
+
+    if (!roundTwo) {
+      throw new BadRequestException('Complete round 2 before submitting round 3');
+    }
+
+    const existingRoundThree = await this.prisma.onboardingRound.findUnique({
+      where: { userId_roundNumber: { userId, roundNumber: 3 } },
+    });
+
+    if (existingRoundThree) {
+      throw new ConflictException('Round 3 already submitted');
+    }
+
+    const onboardingRound = await this.prisma.onboardingRound.create({
+      data: {
+        userId,
+        roundNumber: 3,
+        answers: {
+          skillRatings: dto.skillRatings,
+        },
+        completedAt: new Date(),
+      },
+    });
+
+    await this.learnerProfileService.updateFromRoundThree(userId);
+
     return onboardingRound;
   }
 
@@ -106,11 +259,7 @@ export class OnboardingService {
    *   5. Nếu AI fail / parse null → dùng rule-based fallback
    *   6. Return RecommendationResult (source: 'ai' | 'fallback')
    */
-  async getRecommendation(userId: string): Promise<RecommendationResult> {
-    // ── Bước 1: Đọc OnboardingRound round 1 từ DB ────────────────────────────
-    //
-    // User phải submit answers trước khi lấy recommendation
-    // Sử dụng compound unique key userId_roundNumber để lookup
+  async getRecommendation(userId: string): Promise<OnboardingRecommendationResponse> {
     const round = await this.prisma.onboardingRound.findUnique({
       where: { userId_roundNumber: { userId, roundNumber: 1 } },
     });
@@ -119,10 +268,16 @@ export class OnboardingService {
       throw new NotFoundException('Please complete onboarding first');
     }
 
-    // ── Bước 2: Reconstruct OnboardingDataInput từ round answers ──────────────
-    //
-    // Round answers là JSON object chứa stable question ID keys
-    // Cast sang OnboardingDataInput để reuse existing prompt builder
+    const round3 = await this.prisma.onboardingRound.findUnique({
+      where: { userId_roundNumber: { userId, roundNumber: 3 } },
+    });
+
+    if (!round3) {
+      throw new BadRequestException(
+        'Complete all 3 onboarding rounds before requesting a recommendation',
+      );
+    }
+
     const answers = round.answers as Record<string, unknown>;
     const input: OnboardingDataInput = {
       careerGoal: answers.careerGoal as OnboardingDataInput['careerGoal'],
@@ -133,28 +288,44 @@ export class OnboardingService {
 
     const { systemPrompt, userMessage } = buildOnboardingPrompt(input);
 
-    // ── Bước 3: Gọi AI và parse response ────────────────────────────────────
+    let recommendation: RecommendationResult;
+
     try {
       const rawText = await this.aiService.chat(systemPrompt, userMessage);
 
       const parsed = parseRecommendation(rawText);
 
       if (parsed !== null) {
-        return parsed; // source: 'ai'
+        recommendation = parsed;
+      } else {
+        this.logger.warn(
+          `AI response failed validation for userId=${userId}, using fallback`,
+        );
+        recommendation = getFallbackRecommendation(input);
       }
-
-      this.logger.warn(
-        `AI response failed validation for userId=${userId}, using fallback`,
-      );
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       this.logger.warn(
         `AI API error for userId=${userId}: ${message} — using fallback`,
       );
+      recommendation = getFallbackRecommendation(input);
     }
 
-    // ── Bước 4: Fallback rule-based ──────────────────────────────────────────
-    return getFallbackRecommendation(input);
+    const learningPath = await this.prisma.learningPath.findUnique({
+      where: { slug: recommendation.primaryPath },
+      select: { id: true },
+    });
+
+    if (!learningPath) {
+      throw new NotFoundException(
+        `Learning path not found for slug ${recommendation.primaryPath}`,
+      );
+    }
+
+    return {
+      ...recommendation,
+      learningPathId: learningPath.id,
+    };
   }
 
   // ── POST /onboarding/confirm ──────────────────────────────────────────────
