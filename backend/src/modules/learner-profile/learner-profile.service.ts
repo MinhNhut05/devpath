@@ -74,6 +74,11 @@ export class LearnerProfileService {
     const [profile, rounds] = await Promise.all([
       this.prisma.learnerProfile.findUnique({
         where: { userId },
+        include: {
+          mainLearningPath: {
+            select: { id: true, name: true, slug: true },
+          },
+        },
       }),
       this.prisma.onboardingRound.findMany({
         where: { userId },
@@ -102,6 +107,7 @@ export class LearnerProfileService {
       preferredTopics: profile.preferredTopics,
       lastRecalculatedAt: profile.lastRecalculatedAt,
       roundsCompleted,
+      mainLearningPath: profile.mainLearningPath ?? null,
     };
   }
 
