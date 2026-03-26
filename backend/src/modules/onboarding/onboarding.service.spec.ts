@@ -140,6 +140,10 @@ describe('OnboardingService', () => {
       learningPath: {
         findFirst: jest.fn(),
         findUnique: jest.fn(),
+        findMany: jest.fn(),
+      },
+      learnerProfile: {
+        updateMany: jest.fn(),
       },
       userLearningPath: {
         findUnique: jest.fn(),
@@ -272,11 +276,14 @@ describe('OnboardingService', () => {
   });
 
   describe('getRecommendation', () => {
-    it('returns AI recommendation with learningPathId when AI responds with valid JSON', async () => {
+    it('returns AI recommendation rankings with learningPathIds when AI responds with valid JSON', async () => {
       prisma.onboardingRound.findUnique
         .mockResolvedValueOnce(mockOnboardingRound)
         .mockResolvedValueOnce(mockRoundThree);
-      prisma.learningPath.findUnique.mockResolvedValue({ id: mockLearningPathId });
+      prisma.learningPath.findMany.mockResolvedValue([
+        { id: mockLearningPathId, slug: 'frontend-developer' },
+        { id: 'fullstack-path-id', slug: 'fullstack-developer' },
+      ]);
       aiService.chat.mockResolvedValue(
         JSON.stringify({
           rankings: [
@@ -285,6 +292,12 @@ describe('OnboardingService', () => {
               matchScore: 95,
               explanation: 'Based on your Frontend goal.',
               focusAreas: ['HTML & CSS fundamentals', 'JavaScript ES6+'],
+            },
+            {
+              pathSlug: 'fullstack-developer',
+              matchScore: 72,
+              explanation: 'Alternative path for broader coverage.',
+              focusAreas: ['React', 'API integration'],
             },
           ],
           tips: ['Study consistently every day.'],
@@ -295,8 +308,22 @@ describe('OnboardingService', () => {
 
       expect(aiService.chat).toHaveBeenCalledTimes(1);
       expect(result.source).toBe('ai');
-      expect(result.rankings[0]?.pathSlug).toBe('frontend-developer');
-      expect(result.learningPathId).toBe(mockLearningPathId);
+      expect(result.rankings).toEqual([
+        {
+          learningPathId: mockLearningPathId,
+          pathSlug: 'frontend-developer',
+          matchScore: 95,
+          explanation: 'Based on your Frontend goal.',
+          focusAreas: ['HTML & CSS fundamentals', 'JavaScript ES6+'],
+        },
+        {
+          learningPathId: 'fullstack-path-id',
+          pathSlug: 'fullstack-developer',
+          matchScore: 72,
+          explanation: 'Alternative path for broader coverage.',
+          focusAreas: ['React', 'API integration'],
+        },
+      ]);
     });
 
     it('throws NotFoundException when user has no completed round 1', async () => {
@@ -323,33 +350,44 @@ describe('OnboardingService', () => {
       prisma.onboardingRound.findUnique
         .mockResolvedValueOnce(mockOnboardingRound)
         .mockResolvedValueOnce(mockRoundThree);
-      prisma.learningPath.findUnique.mockResolvedValue({ id: 'frontend-developer-id' });
+      prisma.learningPath.findMany.mockResolvedValue([
+        { id: 'frontend-developer-id', slug: 'frontend-developer' },
+        { id: 'fullstack-developer-id', slug: 'fullstack-developer' },
+        { id: 'backend-developer-id', slug: 'backend-developer' },
+      ]);
       aiService.chat.mockRejectedValue(new Error('AI API timeout after 30000ms'));
 
       const result = await service.getRecommendation(mockUserId);
 
       expect(result.source).toBe('fallback');
-      expect(result.learningPathId).toBe('frontend-developer-id');
+      expect(result.rankings).toHaveLength(3);
+      expect(result.rankings[0]?.learningPathId).toBe('frontend-developer-id');
     });
 
     it('returns fallback recommendation when AI returns invalid JSON', async () => {
       prisma.onboardingRound.findUnique
         .mockResolvedValueOnce(mockOnboardingRound)
         .mockResolvedValueOnce(mockRoundThree);
-      prisma.learningPath.findUnique.mockResolvedValue({ id: 'frontend-developer-id' });
+      prisma.learningPath.findMany.mockResolvedValue([
+        { id: 'frontend-developer-id', slug: 'frontend-developer' },
+        { id: 'fullstack-developer-id', slug: 'fullstack-developer' },
+        { id: 'backend-developer-id', slug: 'backend-developer' },
+      ]);
       aiService.chat.mockResolvedValue('Sorry, I cannot provide a recommendation in JSON format.');
 
       const result = await service.getRecommendation(mockUserId);
 
       expect(result.source).toBe('fallback');
-      expect(result.learningPathId).toBe('frontend-developer-id');
+      expect(result.rankings[0]?.learningPathId).toBe('frontend-developer-id');
     });
 
     it('reconstructs OnboardingDataInput from round 1 answers before calling AI', async () => {
       prisma.onboardingRound.findUnique
         .mockResolvedValueOnce(mockOnboardingRound)
         .mockResolvedValueOnce(mockRoundThree);
-      prisma.learningPath.findUnique.mockResolvedValue({ id: mockLearningPathId });
+      prisma.learningPath.findMany.mockResolvedValue([
+        { id: mockLearningPathId, slug: 'frontend-developer' },
+      ]);
       aiService.chat.mockResolvedValue(
         JSON.stringify({
           rankings: [
@@ -370,6 +408,128 @@ describe('OnboardingService', () => {
         where: { userId_roundNumber: { userId: mockUserId, roundNumber: 1 } },
       });
       expect(aiService.chat).toHaveBeenCalledTimes(1);
+    });
+
+    it('throws NotFoundException when no ranked slugs resolve to learning paths', async () => {
+      prisma.onboardingRound.findUnique
+        .mockResolvedValueOnce(mockOnboardingRound)
+        .mockResolvedValueOnce(mockRoundThree);
+      prisma.learningPath.findMany.mockResolvedValue([]);
+      aiService.chat.mockResolvedValue(
+        JSON.stringify({
+          rankings: [
+            {
+              pathSlug: 'frontend-developer',
+              matchScore: 95,
+              explanation: 'Test',
+              focusAreas: ['Test'],
+            },
+          ],
+          tips: ['Test'],
+        }),
+      );
+
+      await expect(service.getRecommendation(mockUserId)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('filters unresolved ranked slugs while preserving valid recommendations', async () => {
+      prisma.onboardingRound.findUnique
+        .mockResolvedValueOnce(mockOnboardingRound)
+        .mockResolvedValueOnce(mockRoundThree);
+      prisma.learningPath.findMany.mockResolvedValue([
+        { id: mockLearningPathId, slug: 'frontend-developer' },
+      ]);
+      aiService.chat.mockResolvedValue(
+        JSON.stringify({
+          rankings: [
+            {
+              pathSlug: 'frontend-developer',
+              matchScore: 95,
+              explanation: 'Primary fit',
+              focusAreas: ['HTML & CSS fundamentals'],
+            },
+            {
+              pathSlug: 'fullstack-developer',
+              matchScore: 80,
+              explanation: 'Secondary fit',
+              focusAreas: ['React'],
+            },
+          ],
+          tips: ['Test'],
+        }),
+      );
+
+      const result = await service.getRecommendation(mockUserId);
+
+      expect(result.rankings).toEqual([
+        {
+          learningPathId: mockLearningPathId,
+          pathSlug: 'frontend-developer',
+          matchScore: 95,
+          explanation: 'Primary fit',
+          focusAreas: ['HTML & CSS fundamentals'],
+        },
+      ]);
+    });
+
+    it('resolves all ranked learning path ids with a slug lookup query', async () => {
+      prisma.onboardingRound.findUnique
+        .mockResolvedValueOnce(mockOnboardingRound)
+        .mockResolvedValueOnce(mockRoundThree);
+      prisma.learningPath.findMany.mockResolvedValue([
+        { id: mockLearningPathId, slug: 'frontend-developer' },
+      ]);
+      aiService.chat.mockResolvedValue(
+        JSON.stringify({
+          rankings: [
+            {
+              pathSlug: 'frontend-developer',
+              matchScore: 95,
+              explanation: 'Test',
+              focusAreas: ['Test'],
+            },
+          ],
+          tips: ['Test'],
+        }),
+      );
+
+      await service.getRecommendation(mockUserId);
+
+      expect(prisma.learningPath.findMany).toHaveBeenCalledWith({
+        where: { slug: { in: ['frontend-developer'] } },
+        select: { id: true, slug: true },
+      });
+    });
+
+    it('falls back when AI rankings parse but contain no valid items', async () => {
+      prisma.onboardingRound.findUnique
+        .mockResolvedValueOnce(mockOnboardingRound)
+        .mockResolvedValueOnce(mockRoundThree);
+      prisma.learningPath.findMany.mockResolvedValue([
+        { id: 'frontend-developer-id', slug: 'frontend-developer' },
+        { id: 'fullstack-developer-id', slug: 'fullstack-developer' },
+        { id: 'backend-developer-id', slug: 'backend-developer' },
+      ]);
+      aiService.chat.mockResolvedValue(
+        JSON.stringify({
+          rankings: [
+            {
+              pathSlug: 'unknown-path',
+              matchScore: 95,
+              explanation: 'Invalid slug',
+              focusAreas: ['Test'],
+            },
+          ],
+          tips: ['Test'],
+        }),
+      );
+
+      const result = await service.getRecommendation(mockUserId);
+
+      expect(result.source).toBe('fallback');
+      expect(result.rankings).toHaveLength(3);
     });
   });
 
@@ -574,6 +734,10 @@ describe('OnboardingService', () => {
           learningPathId: mockLearningPathId,
           currentLessonId: mockTrackLesson.lessonId,
         },
+      });
+      expect(prisma.learnerProfile.updateMany).toHaveBeenCalledWith({
+        where: { userId: mockUserId, mainLearningPathId: null },
+        data: { mainLearningPathId: mockLearningPathId },
       });
       expect(result).toEqual(mockUserLearningPath);
     });

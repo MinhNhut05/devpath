@@ -321,26 +321,32 @@ export class OnboardingService {
       recommendation = getFallbackRecommendation(input);
     }
 
-    const primaryRecommendation = recommendation.rankings[0];
-
-    if (!primaryRecommendation) {
-      throw new NotFoundException('No recommendation rankings available');
-    }
-
-    const learningPath = await this.prisma.learningPath.findUnique({
-      where: { slug: primaryRecommendation.pathSlug },
-      select: { id: true },
+    const pathSlugs = recommendation.rankings.map((ranking) => ranking.pathSlug);
+    const learningPaths = await this.prisma.learningPath.findMany({
+      where: { slug: { in: pathSlugs } },
+      select: { id: true, slug: true },
     });
 
-    if (!learningPath) {
-      throw new NotFoundException(
-        `Learning path not found for slug ${primaryRecommendation.pathSlug}`,
-      );
+    const slugToId = new Map(learningPaths.map((learningPath) => [learningPath.slug, learningPath.id]));
+
+    const rankingsWithIds: RankedRecommendationWithId[] = recommendation.rankings
+      .filter((ranking) => slugToId.has(ranking.pathSlug))
+      .map((ranking) => ({
+        learningPathId: slugToId.get(ranking.pathSlug)!,
+        pathSlug: ranking.pathSlug,
+        matchScore: ranking.matchScore,
+        explanation: ranking.explanation,
+        focusAreas: ranking.focusAreas,
+      }));
+
+    if (rankingsWithIds.length === 0) {
+      throw new NotFoundException('No valid learning paths found for recommendations');
     }
 
     return {
-      ...recommendation,
-      learningPathId: learningPath.id,
+      source: recommendation.source,
+      rankings: rankingsWithIds,
+      tips: recommendation.tips,
     };
   }
 
