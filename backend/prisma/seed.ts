@@ -341,7 +341,7 @@ Hiểu cách JavaScript xử lý các tác vụ bất đồng bộ như fetching
         summary: `
 # Scope, Closures & This
 
-Hiểu cách JavaScript quản lý phạm vi biến, closures, và từ khóa `this` — nền tảng để hiểu React hooks và ES6 classes.
+Hiểu cách JavaScript quản lý phạm vi biến, closures, và từ khóa \`this\` — nền tảng để hiểu React hooks và ES6 classes.
 
 ## Bạn sẽ học được gì?
 
@@ -349,13 +349,13 @@ Hiểu cách JavaScript quản lý phạm vi biến, closures, và từ khóa `t
 - Lexical scoping và scope chain
 - Closures: hàm ghi nhớ biến từ scope bên ngoài
 - Ứng dụng closures: data privacy, factory functions, event handlers
-- Từ khóa `this` trong các ngữ cảnh khác nhau
-- Cách `bind`, `call`, `apply` thay đổi `this`
-- Tại sao arrow functions không có `this` riêng
+- Từ khóa \`this\` trong các ngữ cảnh khác nhau
+- Cách \`bind\`, \`call\`, \`apply\` thay đổi \`this\`
+- Tại sao arrow functions không có \`this\` riêng
 
 ## Tại sao quan trọng?
 
-Closures là cơ chế đằng sau React hooks (useState "nhớ" giá trị qua các lần render). Hiểu `this` giúp bạn phân biệt function declaration vs arrow function khi viết event handlers trong React.
+Closures là cơ chế đằng sau React hooks (useState "nhớ" giá trị qua các lần render). Hiểu \`this\` giúp bạn phân biệt function declaration vs arrow function khi viết event handlers trong React.
         `.trim(),
         externalLinks: JSON.stringify([
           { title: 'JavaScript.info - Closure', url: 'https://javascript.info/closure', type: 'documentation' },
@@ -381,17 +381,17 @@ Nắm vững các phương thức array hiện đại — công cụ bạn sẽ 
 
 ## Bạn sẽ học được gì?
 
-- `map()`: biến đổi từng phần tử (render danh sách trong React)
-- `filter()`: lọc phần tử theo điều kiện
-- `reduce()`: gộp mảng thành một giá trị
-- `find()` và `findIndex()`: tìm phần tử đầu tiên khớp
-- `some()` và `every()`: kiểm tra điều kiện trên mảng
-- `sort()` và `slice()` cho immutable data patterns
-- Kết hợp chain: `filter().map()` và các patterns phổ biến
+- \`map()\`: biến đổi từng phần tử (render danh sách trong React)
+- \`filter()\`: lọc phần tử theo điều kiện
+- \`reduce()\`: gộp mảng thành một giá trị
+- \`find()\` và \`findIndex()\`: tìm phần tử đầu tiên khớp
+- \`some()\` và \`every()\`: kiểm tra điều kiện trên mảng
+- \`sort()\` và \`slice()\` cho immutable data patterns
+- Kết hợp chain: \`filter().map()\` và các patterns phổ biến
 
 ## Tại sao quan trọng?
 
-Trong React, bạn sẽ viết `items.map(item => <Card key={item.id} />)` hàng trăm lần. Nắm vững array methods giúp bạn xử lý dữ liệu từ API, lọc danh sách, và render UI hiệu quả mà không cần vòng for truyền thống.
+Trong React, bạn sẽ viết \`items.map(item => <Card key={item.id} />)\` hàng trăm lần. Nắm vững array methods giúp bạn xử lý dữ liệu từ API, lọc danh sách, và render UI hiệu quả mà không cần vòng for truyền thống.
         `.trim(),
         externalLinks: JSON.stringify([
           { title: 'JavaScript.info - Array Methods', url: 'https://javascript.info/array-methods', type: 'documentation' },
