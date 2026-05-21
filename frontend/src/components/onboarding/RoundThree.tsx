@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
+import { AlertCircle, ArrowRight } from 'lucide-react';
 
-import { Button } from '../ui/button';
-import { Alert, AlertDescription } from '../ui/alert';
 import { vi } from '../../strings/vi';
 import QuestionCard from './QuestionCard';
 
@@ -38,21 +37,16 @@ export default function RoundThree({ questions, onSubmit, isSubmitting, error }:
         ? current.filter((item) => item !== value)
         : [...current, value];
 
-      return {
-        ...prev,
-        [questionId]: nextValues,
-      };
+      return { ...prev, [questionId]: nextValues };
     });
   }
 
   const allAnswered = useMemo(
     () => questions.length > 0 && questions.every((question) => {
       const answer = answers[question.id];
-
       if (question.type === 'single') {
         return typeof answer === 'string' && answer.length > 0;
       }
-
       return Array.isArray(answer) && answer.length > 0;
     }),
     [answers, questions],
@@ -63,20 +57,17 @@ export default function RoundThree({ questions, onSubmit, isSubmitting, error }:
       accumulator[question.id] = Number(answers[question.id] ?? 0);
       return accumulator;
     }, {});
-
     onSubmit({ skillRatings });
   }
 
   return (
-    <div>
-      <div className="mb-6">
-        <h2 className="text-lg font-semibold text-white/90">{vi.onboarding.roundThreeTitle}</h2>
-        <p className="mt-2 text-sm text-white/50">
-          {vi.onboarding.roundThreeSubtitle}
-        </p>
+    <>
+      <div className="round-head">
+        <h2>{vi.onboarding.roundThreeTitle}</h2>
+        <p>{vi.onboarding.roundThreeSubtitle}</p>
       </div>
 
-      <div className="space-y-6">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {questions.map((question, index) => (
           <QuestionCard
             key={question.id}
@@ -91,22 +82,33 @@ export default function RoundThree({ questions, onSubmit, isSubmitting, error }:
         ))}
       </div>
 
-      <div className="mt-8">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {error ? (
-          <Alert className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">
-            <AlertDescription className="text-red-300">{error}</AlertDescription>
-          </Alert>
+          <div className="onb-alert" role="alert">
+            <span className="ic"><AlertCircle size={16} strokeWidth={2} /></span>
+            <span>{error}</span>
+          </div>
         ) : null}
 
-        <Button
+        <button
           type="button"
           onClick={handleSubmit}
           disabled={!allAnswered || isSubmitting}
-          className="w-full rounded-xl bg-gradient-to-r from-purple-600 to-cyan-500 py-3 font-semibold text-white shadow-lg shadow-purple-500/20 transition-all hover:opacity-90 disabled:opacity-40"
+          className="onb-btn"
         >
-          {isSubmitting ? vi.onboarding.submitting : `${vi.onboarding.primaryCta} →`}
-        </Button>
+          {isSubmitting ? (
+            <>
+              <span className="onb-spinner" />
+              <span>{vi.onboarding.submitting}</span>
+            </>
+          ) : (
+            <>
+              <span>{vi.onboarding.primaryCta}</span>
+              <ArrowRight size={16} strokeWidth={2.2} />
+            </>
+          )}
+        </button>
       </div>
-    </div>
+    </>
   );
 }

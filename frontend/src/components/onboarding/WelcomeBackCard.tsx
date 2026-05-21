@@ -1,5 +1,5 @@
-import { Button } from '../ui/button';
-import { Card, CardContent } from '../ui/card';
+import { ArrowRight, Sparkles } from 'lucide-react';
+
 import { vi } from '../../strings/vi';
 
 interface WelcomeBackCardProps {
@@ -11,20 +11,19 @@ export default function WelcomeBackCard({ completedRounds, onContinue }: Welcome
   const completedCount = completedRounds.length;
 
   return (
-    <Card className="mb-6 rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl">
-      <CardContent className="p-6">
-        <h2 className="text-lg font-semibold text-white/90">{vi.onboarding.resumeHeading}</h2>
-        <p className="mt-2 text-sm text-white/50">{vi.onboarding.resumeBody}</p>
-        <p className="mt-3 text-xs text-white/30">Đã hoàn thành: {completedCount}/3 vòng</p>
-
-        <Button
-          type="button"
-          onClick={onContinue}
-          className="mt-5 w-full rounded-xl bg-gradient-to-r from-purple-600 to-cyan-500 px-8 py-3 font-semibold text-white shadow-lg shadow-purple-500/20 transition-all hover:opacity-90 sm:w-auto"
-        >
-          {vi.onboarding.resumeCta}
-        </Button>
-      </CardContent>
-    </Card>
+    <div className="welcome-back">
+      <h2>
+        <Sparkles size={18} strokeWidth={2} color="var(--onb-primary)" />
+        {vi.onboarding.resumeHeading}
+      </h2>
+      <p>{vi.onboarding.resumeBody}</p>
+      <div className="welcome-back-row">
+        <span className="meta">Đã hoàn thành: {completedCount}/3 vòng</span>
+        <button type="button" onClick={onContinue} className="onb-btn">
+          <span>{vi.onboarding.resumeCta}</span>
+          <ArrowRight size={14} strokeWidth={2.2} />
+        </button>
+      </div>
+    </div>
   );
 }
