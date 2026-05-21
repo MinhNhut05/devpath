@@ -51,40 +51,16 @@ const ROUND_COPY: Record<number, { eyebrow: string; h1Top: string; h1Grad: strin
   },
 };
 
-function SubmarineSvg() {
+function HeroSubmarine() {
   return (
-    <svg className="sub-svg" viewBox="0 0 400 220" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <defs>
-        <linearGradient id="onb-sub-body" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#5BFCFF" />
-          <stop offset="55%" stopColor="#4FACFE" />
-          <stop offset="100%" stopColor="#1E4D6B" />
-        </linearGradient>
-        <linearGradient id="onb-sub-light" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#FFE9A8" stopOpacity="0.9" />
-          <stop offset="100%" stopColor="#FFE9A8" stopOpacity="0" />
-        </linearGradient>
-        <radialGradient id="onb-sub-glow" cx="0.5" cy="0.5" r="0.5">
-          <stop offset="0%" stopColor="rgba(0, 242, 254, 0.45)" />
-          <stop offset="100%" stopColor="rgba(0, 242, 254, 0)" />
-        </radialGradient>
-      </defs>
-      <ellipse cx="200" cy="120" rx="160" ry="60" fill="url(#onb-sub-glow)" />
-      <path d="M65 110 L130 110 L150 95 L260 95 L280 110 L335 110 Q345 120 335 130 L280 130 L260 145 L150 145 L130 130 L65 130 Q55 120 65 110 Z" fill="url(#onb-sub-body)" stroke="#7DDDF0" strokeWidth="1.5" />
-      <rect x="180" y="60" width="38" height="36" rx="6" fill="url(#onb-sub-body)" stroke="#7DDDF0" strokeWidth="1.5" />
-      <rect x="186" y="64" width="26" height="20" rx="3" fill="#0F2027" opacity="0.55" />
-      <line x1="199" y1="58" x2="199" y2="40" stroke="#7DDDF0" strokeWidth="1.5" strokeLinecap="round" />
-      <circle cx="199" cy="38" r="3" fill="#FFE9A8" />
-      <circle cx="160" cy="115" r="9" fill="#0F2027" opacity="0.6" stroke="#7DDDF0" strokeWidth="1.2" />
-      <circle cx="160" cy="115" r="4" fill="#FFE9A8" />
-      <circle cx="200" cy="115" r="9" fill="#0F2027" opacity="0.6" stroke="#7DDDF0" strokeWidth="1.2" />
-      <circle cx="200" cy="115" r="4" fill="#FFE9A8" />
-      <circle cx="240" cy="115" r="9" fill="#0F2027" opacity="0.6" stroke="#7DDDF0" strokeWidth="1.2" />
-      <circle cx="240" cy="115" r="4" fill="#FFE9A8" />
-      <path d="M65 110 L60 105 L48 110 L48 130 L60 135 L65 130 Z" fill="#1E4D6B" stroke="#7DDDF0" strokeWidth="1.2" />
-      <path d="M280 95 L300 80 L308 88 L290 105 Z" fill="#1E4D6B" stroke="#7DDDF0" strokeWidth="1.2" />
-      <path d="M335 115 Q360 100 380 105 Q368 118 348 125 Z" fill="url(#onb-sub-light)" opacity="0.85" />
-    </svg>
+    <img
+      className="sub-svg"
+      src="/onboarding/hero-submarine.webp"
+      alt=""
+      aria-hidden="true"
+      loading="eager"
+      decoding="async"
+    />
   );
 }
 
@@ -122,7 +98,7 @@ function SplitIllusColumn({
         </h1>
         <p>Mỗi vòng câu hỏi giúp DevPath hiểu bạn rõ hơn để cá nhân hóa lộ trình học sắp tới.</p>
       </div>
-      <SubmarineSvg />
+      <HeroSubmarine />
       <BubbleStream />
       <DepthRuler currentRound={currentRound} completedRounds={completedRounds} />
     </div>
@@ -134,7 +110,7 @@ function SplitMobileBanner({ currentRound }: { currentRound: number | null }) {
   const copy = ROUND_COPY[round];
   return (
     <div className="split-mobile-banner">
-      <SubmarineSvg />
+      <HeroSubmarine />
       <BubbleStream />
       <div className="banner-text">
         {copy.mobileTop} <span className="grad">{copy.mobileGrad}</span>

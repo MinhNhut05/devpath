@@ -163,17 +163,20 @@
   max-width: 320px;
 }
 
-/* Submarine SVG (positioned centre-low of illus column) */
+/* Submarine hero image (positioned centre of illus column) */
 .dp-onboarding .sub-svg {
   position: absolute;
-  width: 60%;
-  max-width: 420px;
+  width: 65%;
+  max-width: 480px;
+  height: auto;
   z-index: 2;
-  top: 38%;
+  top: 30%;
   left: 50%;
   transform: translate(-50%, -10%) rotate(-3deg);
-  filter: drop-shadow(0 0 40px rgba(0, 242, 254, 0.32));
+  filter: drop-shadow(0 0 40px rgba(0, 242, 254, 0.30));
   animation: onb-bob 4.4s var(--onb-ease) infinite;
+  pointer-events: none;
+  user-select: none;
 }
 @keyframes onb-bob {
   0%, 100% { transform: translate(-50%, -10%) rotate(-3deg); }
@@ -316,9 +319,10 @@
 }
 .dp-onboarding .split-mobile-banner .sub-svg {
   position: absolute;
-  width: 56%;
-  max-width: 260px;
-  top: 24%;
+  width: 60%;
+  max-width: 300px;
+  height: auto;
+  top: 26%;
   left: 50%;
   z-index: 2;
 }
