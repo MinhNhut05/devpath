@@ -30,9 +30,8 @@ docker compose up -d
 pnpm dev
 ```
 
-## Documentation
+Frontend runs on `:5173`, backend API on `:3001`.
 
-- [Technical Specification](./context/) - Full technical spec
-- [Branch Plans](./branches/) - Context, progress, and TODO for each branch
-- [Progress Tracking](./TRACKPAD.md) - Learning progress log
-- [Infrastructure](./INFRASTRUCTURE.md) - Production infrastructure summary
+## License
+
+MIT — see [LICENSE](./LICENSE).
