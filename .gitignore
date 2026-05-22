@@ -144,14 +144,21 @@ vite.config.ts.timestamp-*
 CLAUDE.md
 CONTEXT.md
 INFRASTRUCTURE.md
+TRACKPAD.md
+.continue-here.md
 branches/
+
+# Internal planning and project context
+.context/
+.planning/
 
 # IDE
 .vscode/
 .idea/
 
-# Claude Code CLI skills
+# Claude Code CLI tooling
 .agents/
+.claude/
 
 # Lockfiles (optional)
 pnpm-lock.yaml
